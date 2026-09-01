@@ -152,6 +152,34 @@ def evaluate_deal(title: str, price: int) -> tuple[bool, str, str]:
                 
     return False, "BUKAN_MODEL_TARGET", "Bukan VGA incaran bisnis", 0
 
+def prune_old_discord_alerts(days: int = 7):
+    """Hapus otomatis pesan alert lama di Discord agar channel tetap bersih."""
+    if not DISCORD_WEBHOOK_URL:
+        return
+    conn = sqlite3.connect("seen_deals.db")
+    c = conn.cursor()
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS discord_alerts (
+            message_id TEXT PRIMARY KEY,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    # Cari pesan > 7 hari
+    c.execute("SELECT message_id FROM discord_alerts WHERE created_at < datetime('now', ?)", (f"-{days} days",))
+    old_msgs = [r[0] for r in c.fetchall()]
+    
+    base_wh = DISCORD_WEBHOOK_URL.split("?")[0]
+    for msg_id in old_msgs:
+        try:
+            del_url = f"{base_wh}/messages/{msg_id}"
+            req = urllib.request.Request(del_url, method="DELETE", headers={"User-Agent": "VGAHunter/1.0"})
+            urllib.request.urlopen(req, timeout=5)
+            c.execute("DELETE FROM discord_alerts WHERE message_id = ?", (msg_id,))
+        except Exception:
+            pass
+    conn.commit()
+    conn.close()
+
 def send_discord_alert(deal: dict, deal_type: str = "STEAL_DEAL", smart_score: int = 80):
     is_unpriced = deal_type == "UNPRICED"
     badge_discord = "⚠️ [TANYA HARGA / FREE]" if is_unpriced else f"💎 [STEAL DEAL • SKOR AI {smart_score}/100]"
@@ -183,13 +211,24 @@ def send_discord_alert(deal: dict, deal_type: str = "STEAL_DEAL", smart_score: i
     }
 
     try:
+        # Gunakan ?wait=true agar Discord mengembalikan message_id untuk auto-prune
+        wh_url = f"{DISCORD_WEBHOOK_URL.split('?')[0]}?wait=true"
         req = urllib.request.Request(
-            DISCORD_WEBHOOK_URL,
+            wh_url,
             data=json.dumps(payload).encode("utf-8"),
             headers={"Content-Type": "application/json", "User-Agent": "VGAHunter/1.0"}
         )
-        urllib.request.urlopen(req, timeout=10)
-        print(f"[+] Alert Discord terkirim!")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            msg_id = data.get("id")
+            if msg_id:
+                conn = sqlite3.connect("seen_deals.db")
+                c = conn.cursor()
+                c.execute("CREATE TABLE IF NOT EXISTS discord_alerts (message_id TEXT PRIMARY KEY, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+                c.execute("INSERT OR IGNORE INTO discord_alerts (message_id) VALUES (?)", (str(msg_id),))
+                conn.commit()
+                conn.close()
+        print(f"[+] Alert Discord terkirim! (ID: {msg_id})")
     except Exception as e:
         print(f"[-] Discord webhook error: {e}")
 
@@ -272,6 +311,12 @@ async def run_sniper_round():
         sync_deals_to_supabase()
     except Exception as e:
         print(f"[-] Supabase sync error: {e}")
+        
+    # Auto-Prune alert Discord lama (> 7 hari)
+    try:
+        prune_old_discord_alerts(days=7)
+    except Exception as e:
+        print(f"[-] Discord prune error: {e}")
         
     print(f"    - Listing lama dilewati: {already_seen_count}")
     print(f"    - Diblokir (VGA ampas/matot/dus): {junk_blocked_count}")
