@@ -58,9 +58,9 @@
       </div>
       
       <div class="flex items-center gap-2">
-        <div class="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-[#03AC0E] px-2.5 py-1 rounded-lg text-[11px] font-bold">
-          <span class="w-2 h-2 rounded-full bg-[#03AC0E] animate-ping flex-shrink-0"></span>
-          <span class="hidden sm:inline">Supabase</span> Live
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border" id="botStatusPill">
+          <span class="w-2 h-2 rounded-full animate-ping flex-shrink-0" id="botStatusDot"></span>
+          <span id="botStatusText">Mengecek Bot PC...</span>
         </div>
         <button onclick="loadData()" class="p-1.5 sm:px-3 sm:py-1.5 bg-[#03AC0E] hover:bg-[#028A0B] text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-sm" title="Sync Data">
           <i class="fa-solid fa-arrows-rotate"></i>
@@ -282,6 +282,31 @@
       document.getElementById('count-tokped').innerText = tokpedCount;
       document.getElementById('count-fb').innerText = fbCount;
       document.getElementById('count-toco').innerText = tocoCount;
+
+      // DETEKSI STATUS BOT PC DARI WAKTU DATA TERAKHIR
+      if (allDeals.length > 0) {
+        const latestTime = new Date(allDeals[0].created_at).getTime();
+        const now = Date.now();
+        const diffMinutes = Math.round((now - latestTime) / (1000 * 60));
+        
+        const pill = document.getElementById('botStatusPill');
+        const dot = document.getElementById('botStatusDot');
+        const text = document.getElementById('botStatusText');
+
+        if (diffMinutes <= 20) {
+          pill.className = 'flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-[#03AC0E] px-2.5 py-1 rounded-lg text-[11px] font-bold';
+          dot.className = 'w-2 h-2 rounded-full bg-[#03AC0E] animate-ping flex-shrink-0';
+          text.innerText = `Bot PC Aktif (${diffMinutes}m lalu)`;
+        } else if (diffMinutes <= 60) {
+          pill.className = 'flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-600 px-2.5 py-1 rounded-lg text-[11px] font-bold';
+          dot.className = 'w-2 h-2 rounded-full bg-amber-500 flex-shrink-0';
+          text.innerText = `Bot PC Standby (${diffMinutes}m lalu)`;
+        } else {
+          pill.className = 'flex items-center gap-1.5 bg-slate-100 border border-slate-300 text-slate-600 px-2.5 py-1 rounded-lg text-[11px] font-bold';
+          dot.className = 'w-2 h-2 rounded-full bg-slate-400 flex-shrink-0';
+          text.innerText = 'Bot PC Offline';
+        }
+      }
     }
 
     function setPlatform(platform) {
