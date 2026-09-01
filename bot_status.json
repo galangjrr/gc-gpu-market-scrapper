@@ -1,8 +1,8 @@
 {
-  "status": "SCANNING",
+  "status": "SLEEPING",
   "last_scan_time": "01:35:57 WIB",
-  "next_scan_timestamp": 1788287757,
+  "next_scan_timestamp": 1788288560,
   "interval_minutes": 10,
-  "last_result_summary": "Sedang memindai Tokopedia, FB & Toco...",
-  "is_busy": true
+  "last_result_summary": "Selesai pada 01:35:57 WIB. Siap scan berikutnya.",
+  "is_busy": false
 }
