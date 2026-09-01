@@ -1,0 +1,26 @@
+{
+  "RX 7600": {
+    "sample_count": 11,
+    "harga_pasar_median": "Rp 4,940,100",
+    "harga_terendah": "Rp 4,355,010",
+    "harga_tertinggi": "Rp 4,940,100",
+    "target_kulak_snipe": "Rp 4,149,684",
+    "estimasi_cuan": "Rp 790,416"
+  },
+  "RX 6600 XT": {
+    "sample_count": 9,
+    "harga_pasar_median": "Rp 3,200,000",
+    "harga_terendah": "Rp 1,000,000",
+    "harga_tertinggi": "Rp 3,950,000",
+    "target_kulak_snipe": "Rp 2,688,000",
+    "estimasi_cuan": "Rp 512,000"
+  },
+  "RX 6600": {
+    "sample_count": 27,
+    "harga_pasar_median": "Rp 3,000,000",
+    "harga_terendah": "Rp 1,000,000",
+    "harga_tertinggi": "Rp 4,400,000",
+    "target_kulak_snipe": "Rp 2,520,000",
+    "estimasi_cuan": "Rp 480,000"
+  }
+}

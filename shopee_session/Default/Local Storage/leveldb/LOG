@@ -1,0 +1,6 @@
+2026/09/02-00:35:45.316 2bbc Reusing MANIFEST C:\Users\Galang\Documents\Project App\vga-hunter\shopee_session\Default\Local Storage\leveldb/MANIFEST-000001
+2026/09/02-00:35:45.320 2bbc Recovering log #3
+2026/09/02-00:35:45.322 2bbc Reusing old log C:\Users\Galang\Documents\Project App\vga-hunter\shopee_session\Default\Local Storage\leveldb/000003.log 
+2026/09/02-00:35:52.989 4aec Level-0 table #5: started
+2026/09/02-00:35:52.996 4aec Level-0 table #5: 22207 bytes OK
+2026/09/02-00:35:52.998 4aec Delete type=0 #3

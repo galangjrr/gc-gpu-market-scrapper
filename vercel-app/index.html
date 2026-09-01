@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VGA Hunter Cloud • Clean Curated</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      background-color: #F0F3F7;
+      color: #212121;
+      font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .card-tokped {
+      background: #FFFFFF;
+      border: 1px solid #E5E7EB;
+      box-shadow: 0 1px 4px rgba(141, 150, 170, 0.08);
+      border-radius: 12px;
+    }
+    .tab-btn.active {
+      background-color: #03AC0E;
+      color: #FFFFFF;
+      border-color: #03AC0E;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  
+  <!-- NAVBAR -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-[#03AC0E] flex items-center justify-center text-white text-lg font-black shadow-sm">
+          <i class="fa-solid fa-cloud"></i>
+        </div>
+        <div>
+          <div class="font-extrabold text-base sm:text-lg text-slate-800 tracking-tight flex items-center gap-1.5">
+            <span>VGA</span><span class="text-[#03AC0E]">Hunter</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-[#03AC0E] rounded border border-emerald-200 ml-1">CLOUD LIVE</span>
+          </div>
+          <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Supabase Realtime • Akses Dimana Saja</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-[#03AC0E] px-3 py-1.5 rounded-lg text-xs font-bold" id="realtimePill">
+          <span class="w-2 h-2 rounded-full bg-[#03AC0E] animate-ping"></span>
+          <span>Realtime Connected</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+    <!-- KPI STATS -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="card-tokped p-4">
+        <div class="text-xs font-semibold text-slate-500">Unit Normal Terpantau</div>
+        <div class="text-2xl sm:text-3xl font-extrabold mt-1 text-slate-800" id="stat-total">0</div>
+        <div class="text-xs text-[#03AC0E] font-semibold mt-1">Bebas Part Kanibal</div>
+      </div>
+      <div class="card-tokped p-4">
+        <div class="text-xs font-semibold text-slate-500">Peluang Cuan (Steal Deals)</div>
+        <div class="text-2xl sm:text-3xl font-extrabold mt-1 text-[#03AC0E]" id="stat-steal">0 Unit</div>
+        <div class="text-xs text-emerald-600 font-semibold mt-1">Di Bawah Batas Kulak</div>
+      </div>
+      <div class="card-tokped p-4">
+        <div class="text-xs font-semibold text-slate-500">Filter Sampah Aktif</div>
+        <div class="text-xl sm:text-2xl font-extrabold mt-1 text-blue-600">Auto-Filtered</div>
+        <div class="text-xs text-slate-500 mt-1">Matot / Box / Kabel Dibuang</div>
+      </div>
+      <div class="card-tokped p-4">
+        <div class="text-xs font-semibold text-slate-500">Platform Terhubung</div>
+        <div class="text-xl sm:text-2xl font-extrabold mt-1 text-purple-600">3 Marketplace</div>
+        <div class="text-xs text-slate-500 mt-1">Tokopedia • FB • Toco</div>
+      </div>
+    </section>
+
+    <!-- CLEAN LISTINGS FEED -->
+    <section class="card-tokped p-6 space-y-4">
+      <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-extrabold text-slate-800">Katalog Listing VGA Normal (Tersaring)</h3>
+          <p class="text-xs text-slate-500">Unit cacat/kanibal dibersihkan otomatis.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="setTab('STEAL')" id="tabSteal" class="tab-btn px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-fire text-amber-500"></i> Hanya Steal Deals
+          </button>
+          <button onclick="setTab('ALL')" id="tabAll" class="tab-btn active px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 flex items-center gap-1.5 transition">
+            Semua VGA Normal
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <input type="text" id="searchInput" placeholder="Cari nama/kota..." class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none">
+        <select id="platformFilter" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none">
+          <option value="ALL">Semua Platform</option>
+          <option value="Tokopedia">Tokopedia</option>
+          <option value="Facebook">Facebook</option>
+          <option value="Toco">Toco</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="listingsGrid"></div>
+    </section>
+
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+    let supabase = null;
+    let allDeals = [];
+    let currentTab = 'ALL';
+
+    try {
+      if (!SUPABASE_URL.includes("YOUR_PROJECT")) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch(e) {}
+
+    async function loadData() {
+      if (!supabase) return;
+      const { data } = await supabase.from('vga_deals').select('*').order('created_at', { ascending: false }).limit(100);
+      if (data) {
+        allDeals = data;
+        document.getElementById('stat-total').innerText = allDeals.length;
+        document.getElementById('stat-steal').innerText = allDeals.filter(d => d.is_steal_deal).length + ' Unit';
+        renderListings();
+      }
+    }
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.getElementById('tabAll').className = tab === 'ALL' ? 'tab-btn active px-3 py-1.5 bg-[#03AC0E] border border-[#03AC0E] rounded-lg text-xs font-bold text-white transition' : 'tab-btn px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition';
+      document.getElementById('tabSteal').className = tab === 'STEAL' ? 'tab-btn active px-3 py-1.5 bg-[#03AC0E] border border-[#03AC0E] rounded-lg text-xs font-bold text-white transition' : 'tab-btn px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition';
+      renderListings();
+    }
+
+    function renderListings() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const p = document.getElementById('platformFilter').value;
+      const grid = document.getElementById('listingsGrid');
+      grid.innerHTML = '';
+
+      const filtered = allDeals.filter(d => {
+        if (currentTab === 'STEAL' && !d.is_steal_deal) return false;
+        const matchQ = d.title.toLowerCase().includes(q) || (d.location && d.location.toLowerCase().includes(q));
+        const matchP = p === 'ALL' || d.platform === p;
+        return matchQ && matchP;
+      });
+
+      filtered.forEach(d => {
+        let badgeColor = 'text-[#03AC0E] bg-emerald-50 border-emerald-200';
+        if (d.platform === 'Facebook') badgeColor = 'text-blue-600 bg-blue-50 border-blue-200';
+        if (d.platform === 'Toco') badgeColor = 'text-orange-600 bg-orange-50 border-orange-200';
+
+        grid.innerHTML += `
+          <div class="card-tokped p-4 flex flex-col justify-between hover:shadow-md transition">
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded border ${badgeColor} uppercase">${d.platform}</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 rounded text-slate-700">${d.fan_type || '2 Fan'}</span>
+              </div>
+              <h4 class="font-bold text-slate-800 text-xs line-clamp-2 leading-relaxed" title="${d.title}">${d.title}</h4>
+              <div class="flex items-center gap-2 mt-2 text-[11px] text-slate-500 font-medium">
+                <span class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-semibold text-slate-600">${d.brand || 'OEM'}</span>
+                <span class="truncate max-w-[120px]"><i class="fa-solid fa-location-dot text-slate-400"></i> ${d.location || 'Indonesia'}</span>
+              </div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div>
+                <div class="text-[10px] text-slate-400 font-semibold">Harga</div>
+                <div class="font-extrabold text-sm text-[#03AC0E]">${d.price_raw || 'Rp ' + Number(d.price).toLocaleString('id-ID')}</div>
+              </div>
+              <a href="${d.url}" target="_blank" class="px-3 py-1.5 bg-[#03AC0E] hover:bg-[#028A0B] text-white text-xs font-bold rounded-lg transition shadow-sm">
+                Beli / Chat &rarr;
+              </a>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', renderListings);
+    document.getElementById('platformFilter').addEventListener('change', renderListings);
+    loadData();
+  </script>
+</body>
+</html>
