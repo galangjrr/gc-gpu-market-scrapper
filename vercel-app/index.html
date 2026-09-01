@@ -2,11 +2,10 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VGA Hunter Cloud • Live Supabase</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>VGA Hunter • Tokopedia / FB / Toco Intelligence</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap');
@@ -15,155 +14,201 @@
       color: #212121;
       font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
       -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
     }
     .card-tokped {
       background: #FFFFFF;
       border: 1px solid #E5E7EB;
-      box-shadow: 0 1px 4px rgba(141, 150, 170, 0.08);
+      box-shadow: 0 1px 3px rgba(141, 150, 170, 0.08);
       border-radius: 12px;
     }
-    .tab-btn.active {
+    .platform-pill.active {
       background-color: #03AC0E;
       color: #FFFFFF;
       border-color: #03AC0E;
+      box-shadow: 0 2px 6px rgba(3, 172, 14, 0.25);
     }
+    .deal-pill.active {
+      background-color: #F59E0B;
+      color: #FFFFFF;
+      border-color: #F59E0B;
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen pb-12">
   
-  <!-- NAVBAR -->
+  <!-- MOBILE RESPONSIVE NAVBAR -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-[#03AC0E] flex items-center justify-center text-white text-lg font-black shadow-sm">
-          <i class="fa-solid fa-cloud"></i>
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#03AC0E] flex items-center justify-center text-white text-base sm:text-lg font-black shadow-sm flex-shrink-0">
+          <i class="fa-solid fa-microchip"></i>
         </div>
         <div>
-          <div class="font-extrabold text-base sm:text-lg text-slate-800 tracking-tight flex items-center gap-1.5">
+          <div class="font-extrabold text-sm sm:text-lg text-slate-800 tracking-tight flex items-center gap-1">
             <span>VGA</span><span class="text-[#03AC0E]">Hunter</span>
-            <span class="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-[#03AC0E] rounded border border-emerald-200 ml-1">CLOUD LIVE</span>
+            <span class="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 bg-emerald-50 text-[#03AC0E] rounded border border-emerald-200 ml-1">LIVE CLOUD</span>
           </div>
-          <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Supabase Realtime • Akses Dimana Saja</p>
+          <p class="text-[10px] sm:text-[11px] text-slate-500 font-medium hidden sm:block">Pemantau Real-time Tokopedia • FB Marketplace • Toco.id</p>
         </div>
       </div>
       
-      <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-[#03AC0E] px-3 py-1.5 rounded-lg text-xs font-bold" id="realtimePill">
-          <span class="w-2 h-2 rounded-full bg-[#03AC0E] animate-ping"></span>
-          <span id="realtimeStatus">Realtime Connected</span>
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-[#03AC0E] px-2.5 py-1 rounded-lg text-[11px] font-bold">
+          <span class="w-2 h-2 rounded-full bg-[#03AC0E] animate-ping flex-shrink-0"></span>
+          <span class="hidden sm:inline">Supabase</span> Live
         </div>
-        <button onclick="loadData()" class="px-3.5 py-1.5 bg-[#03AC0E] hover:bg-[#028A0B] text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
-          <i class="fa-solid fa-arrows-rotate"></i> Sync
+        <button onclick="loadData()" class="p-1.5 sm:px-3 sm:py-1.5 bg-[#03AC0E] hover:bg-[#028A0B] text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-sm" title="Sync Data">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span class="hidden sm:inline">Sync</span>
         </button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
-    <!-- KPI STATS -->
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="card-tokped p-4">
-        <div class="text-xs font-semibold text-slate-500">Unit Normal Terpantau</div>
-        <div class="text-2xl sm:text-3xl font-extrabold mt-1 text-slate-800" id="stat-total">0</div>
-        <div class="text-xs text-[#03AC0E] font-semibold mt-1">Bebas Part Kanibal</div>
+    <!-- KPI STATS CARDS (2x2 on mobile, 4x1 on desktop) -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+      <div class="card-tokped p-3 sm:p-4">
+        <div class="text-[11px] sm:text-xs font-semibold text-slate-500">Unit Terpantau</div>
+        <div class="text-xl sm:text-3xl font-extrabold mt-0.5 text-slate-800" id="stat-total">0</div>
+        <div class="text-[10px] sm:text-xs text-[#03AC0E] font-bold mt-0.5"><i class="fa-solid fa-check"></i> Bebas Sampah</div>
       </div>
-      <div class="card-tokped p-4">
-        <div class="text-xs font-semibold text-slate-500">Peluang Cuan (Steal Deals)</div>
-        <div class="text-2xl sm:text-3xl font-extrabold mt-1 text-[#03AC0E]" id="stat-steal">0 Unit</div>
-        <div class="text-xs text-emerald-600 font-semibold mt-1">Di Bawah Batas Kulak</div>
+      <div class="card-tokped p-3 sm:p-4">
+        <div class="text-[11px] sm:text-xs font-semibold text-slate-500">Peluang Cuan</div>
+        <div class="text-xl sm:text-3xl font-extrabold mt-0.5 text-amber-500" id="stat-steal">0 Unit</div>
+        <div class="text-[10px] sm:text-xs text-amber-600 font-bold mt-0.5">&le; Batas Kulak</div>
       </div>
-      <div class="card-tokped p-4">
-        <div class="text-xs font-semibold text-slate-500">Database Supabase</div>
-        <div class="text-xl sm:text-2xl font-extrabold mt-1 text-blue-600">Online</div>
-        <div class="text-xs text-slate-500 mt-1">Realtime PostgreSQL</div>
+      <div class="card-tokped p-3 sm:p-4">
+        <div class="text-[11px] sm:text-xs font-semibold text-slate-500">Tokopedia &amp; FB</div>
+        <div class="text-xl sm:text-3xl font-extrabold mt-0.5 text-blue-600" id="stat-tokped-fb">0 Unit</div>
+        <div class="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">Nasional + Jabodetabek</div>
       </div>
-      <div class="card-tokped p-4">
-        <div class="text-xs font-semibold text-slate-500">Platform Terhubung</div>
-        <div class="text-xl sm:text-2xl font-extrabold mt-1 text-purple-600">3 Marketplace</div>
-        <div class="text-xs text-slate-500 mt-1">Tokopedia • FB • Toco</div>
+      <div class="card-tokped p-3 sm:p-4">
+        <div class="text-[11px] sm:text-xs font-semibold text-slate-500">Toco.id Preloved</div>
+        <div class="text-xl sm:text-3xl font-extrabold mt-0.5 text-orange-500" id="stat-toco">0 Unit</div>
+        <div class="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">C2C Terverifikasi</div>
       </div>
     </section>
 
     <!-- DECISION CALCULATOR -->
-    <section class="card-tokped p-6 border-l-4 border-l-[#03AC0E]">
-      <div class="flex items-center gap-2 mb-2">
-        <span class="p-1.5 bg-emerald-50 text-[#03AC0E] rounded-md text-sm"><i class="fa-solid fa-calculator"></i></span>
-        <h2 class="text-base font-extrabold text-slate-800">Kalkulator Cek Kelayakan Beli</h2>
-      </div>
-      <p class="text-xs text-slate-500 mb-4">Input harga dari seller untuk hitung batas aman kulak &amp; potensi margin untung.</p>
-
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-        <div class="md:col-span-4">
-          <label class="block text-xs font-bold text-slate-600 mb-1">Model VGA</label>
-          <select id="calcModel" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
-            <option value="RTX 4060">RTX 4060</option>
-            <option value="RTX 3070">RTX 3070</option>
-            <option value="RTX 3060 TI">RTX 3060 TI</option>
-            <option value="RTX 3060" selected>RTX 3060</option>
-            <option value="RTX 3050">RTX 3050</option>
-            <option value="RTX 2060 SUPER">RTX 2060 SUPER</option>
-            <option value="RTX 2060">RTX 2060</option>
-            <option value="GTX 1660 SUPER">GTX 1660 SUPER</option>
-            <option value="RX 7600">RX 7600</option>
-            <option value="RX 6700 XT">RX 6700 XT</option>
-            <option value="RX 6600 XT">RX 6600 XT</option>
-            <option value="RX 6600">RX 6600</option>
-          </select>
-        </div>
-        <div class="md:col-span-3">
-          <label class="block text-xs font-bold text-slate-600 mb-1">Tipe Fan</label>
-          <select id="calcFan" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
-            <option value="triple">Triple Fan (+8% Valuasi)</option>
-            <option value="dual" selected>Dual Fan (Standard)</option>
-            <option value="single">Single Fan (-6% Valuasi)</option>
-          </select>
-        </div>
-        <div class="md:col-span-3">
-          <label class="block text-xs font-bold text-slate-600 mb-1">Harga Ditawarkan Seller (Rp)</label>
-          <input type="number" id="calcPrice" placeholder="Contoh: 3200000" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
-        </div>
-        <div class="md:col-span-2">
-          <button onclick="checkViability()" class="w-full py-2 bg-[#03AC0E] hover:bg-[#028A0B] text-white font-bold text-sm rounded-lg transition shadow-sm">
-            Cek Kelayakan
-          </button>
-        </div>
-      </div>
-
-      <div id="calcResult" class="hidden mt-4 p-4 rounded-xl text-sm transition"></div>
-    </section>
-
-    <!-- CLEAN LISTINGS FEED -->
-    <section class="card-tokped p-6 space-y-4">
-      <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 pb-3 border-b border-slate-100">
-        <div>
-          <h3 class="text-base font-extrabold text-slate-800">Katalog Listing Real-time Cloud</h3>
-          <p class="text-xs text-slate-500">Tersinkronisasi otomatis dengan database Supabase</p>
-        </div>
-
+    <details class="card-tokped p-4 sm:p-5 border-l-4 border-l-[#03AC0E] group">
+      <summary class="cursor-pointer font-bold text-xs sm:text-sm text-slate-800 flex items-center justify-between list-none">
         <div class="flex items-center gap-2">
-          <button onclick="setTab('STEAL')" id="tabSteal" class="tab-btn px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 flex items-center gap-1.5 transition">
-            <i class="fa-solid fa-fire text-amber-500"></i> Hanya Steal Deals
+          <span class="p-1 bg-emerald-50 text-[#03AC0E] rounded text-xs"><i class="fa-solid fa-calculator"></i></span>
+          <span class="font-extrabold">Kalkulator Cek Kelayakan Beli (Klik untuk Buka)</span>
+        </div>
+        <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform group-open:rotate-180"></i>
+      </summary>
+      
+      <div class="mt-4 pt-3 border-t border-slate-100 space-y-3">
+        <p class="text-[11px] text-slate-500">Ketik harga tawaran seller untuk mengetahui status kelayakan beli dan estimasi profit.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
+          <div class="sm:col-span-4">
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Model VGA</label>
+            <select id="calcModel" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
+              <option value="RTX 4060">RTX 4060</option>
+              <option value="RTX 3070">RTX 3070</option>
+              <option value="RTX 3060 TI">RTX 3060 TI</option>
+              <option value="RTX 3060" selected>RTX 3060</option>
+              <option value="RTX 3050">RTX 3050</option>
+              <option value="RTX 2060 SUPER">RTX 2060 SUPER</option>
+              <option value="RTX 2060">RTX 2060</option>
+              <option value="GTX 1660 SUPER">GTX 1660 SUPER</option>
+              <option value="RX 7600">RX 7600</option>
+              <option value="RX 6700 XT">RX 6700 XT</option>
+              <option value="RX 6600 XT">RX 6600 XT</option>
+              <option value="RX 6600">RX 6600</option>
+            </select>
+          </div>
+          <div class="sm:col-span-3">
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Tipe Fan</label>
+            <select id="calcFan" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
+              <option value="triple">Triple Fan (+8%)</option>
+              <option value="dual" selected>Dual Fan (Standard)</option>
+              <option value="single">Single Fan (-6%)</option>
+            </select>
+          </div>
+          <div class="sm:col-span-3">
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Harga Seller (Rp)</label>
+            <input type="number" id="calcPrice" placeholder="Contoh: 3200000" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
+          </div>
+          <div class="sm:col-span-2">
+            <button onclick="checkViability()" class="w-full py-2 bg-[#03AC0E] hover:bg-[#028A0B] text-white font-bold text-xs sm:text-sm rounded-lg transition shadow-sm">
+              Cek
+            </button>
+          </div>
+        </div>
+
+        <div id="calcResult" class="hidden mt-3 p-3 rounded-xl text-xs transition"></div>
+      </div>
+    </details>
+
+    <!-- LISTINGS FILTER SECTION WITH HORIZONTAL PLATFORM TABS -->
+    <section class="card-tokped p-3.5 sm:p-6 space-y-4">
+      
+      <!-- HEADER & CONTROLS -->
+      <div class="flex flex-col gap-3 pb-3 border-b border-slate-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm sm:text-base font-extrabold text-slate-800">Katalog Listing VGA Second</h3>
+            <p class="text-[11px] text-slate-500 hidden sm:block">Pilih platform di bawah untuk memfilter Tokopedia, Facebook, atau Toco</p>
+          </div>
+          <span class="text-xs font-bold text-slate-500" id="resultCountBadge">0 Hasil</span>
+        </div>
+
+        <!-- 1. PLATFORM FILTER PILLS (Responsive Horizontal Scroll) -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+          <button onclick="setPlatform('ALL')" id="pill-all" class="platform-pill active px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-slate-100 text-slate-700 whitespace-nowrap transition flex items-center gap-1.5">
+            <span>Semua</span>
+            <span class="px-1.5 py-0.2 bg-white/20 rounded-full text-[10px]" id="count-all">0</span>
           </button>
-          <button onclick="setTab('ALL')" id="tabAll" class="tab-btn active px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 flex items-center gap-1.5 transition">
-            Semua VGA Normal
+          <button onclick="setPlatform('Tokopedia')" id="pill-tokped" class="platform-pill px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-slate-100 text-slate-700 whitespace-nowrap transition flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-[#03AC0E]"></span>
+            <span>Tokopedia</span>
+            <span class="px-1.5 py-0.2 bg-slate-200 rounded-full text-[10px]" id="count-tokped">0</span>
+          </button>
+          <button onclick="setPlatform('Facebook')" id="pill-fb" class="platform-pill px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-slate-100 text-slate-700 whitespace-nowrap transition flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-[#1877F2]"></span>
+            <span>Facebook</span>
+            <span class="px-1.5 py-0.2 bg-slate-200 rounded-full text-[10px]" id="count-fb">0</span>
+          </button>
+          <button onclick="setPlatform('Toco')" id="pill-toco" class="platform-pill px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-slate-100 text-slate-700 whitespace-nowrap transition flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-[#F97316]"></span>
+            <span>Toco.id</span>
+            <span class="px-1.5 py-0.2 bg-slate-200 rounded-full text-[10px]" id="count-toco">0</span>
           </button>
         </div>
+
+        <!-- 2. QUICK DEALS & SEARCH BAR -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 pt-1">
+          <!-- Search Box -->
+          <div class="sm:col-span-8 relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input type="text" id="searchInput" placeholder="Cari tipe VGA, kota, merk (cth: 3060, Jakarta, Asus)..." 
+                   class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#03AC0E]">
+          </div>
+
+          <!-- Deal Toggle Button -->
+          <div class="sm:col-span-4 flex gap-1.5">
+            <button onclick="toggleStealFilter()" id="btnStealToggle" class="deal-pill flex-1 py-2 px-3 rounded-lg text-xs font-bold border border-slate-200 bg-slate-100 text-slate-700 transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-fire text-amber-500"></i>
+              <span>Hanya Steal Deals</span>
+            </button>
+          </div>
+        </div>
+
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <input type="text" id="searchInput" placeholder="Cari nama/kota..." class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none">
-        <select id="platformFilter" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none">
-          <option value="ALL">Semua Platform</option>
-          <option value="Tokopedia">Tokopedia</option>
-          <option value="Facebook">Facebook</option>
-          <option value="Toco">Toco</option>
-        </select>
+      <!-- RESPONSIVE CARDS GRID (1 col Mobile, 2 col Tablet, 3 col Desktop) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4" id="listingsGrid">
+        <div class="col-span-full text-center py-12 text-slate-400 text-xs font-semibold">Memuat katalog VGA...</div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="listingsGrid">
-        <div class="col-span-full text-center py-12 text-slate-400 text-xs font-semibold">Memuat data dari Supabase...</div>
-      </div>
     </section>
 
   </main>
@@ -174,7 +219,8 @@
 
     let dbClient = null;
     let allDeals = [];
-    let currentTab = 'ALL';
+    let selectedPlatform = 'ALL';
+    let onlyStealDeals = false;
 
     const priceBaselines = {
       "RTX 4060": 4300000, "RTX 3070": 4300000, "RTX 3060 TI": 3800000,
@@ -187,9 +233,7 @@
       dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: { persistSession: false }
       });
-    } catch(e) {
-      console.error("Supabase Init Error:", e);
-    }
+    } catch(e) { console.error("Supabase Init:", e); }
 
     async function loadData() {
       if (!dbClient) return;
@@ -198,13 +242,12 @@
           .from('vga_deals')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(150);
+          .limit(200);
 
         if (error) throw error;
         if (data) {
           allDeals = data;
-          document.getElementById('stat-total').innerText = allDeals.length;
-          document.getElementById('stat-steal').innerText = allDeals.filter(d => d.is_steal_deal).length + ' Unit';
+          updateStatsAndPillCounts();
           renderListings();
         }
       } catch (err) {
@@ -217,11 +260,59 @@
         .channel('public:vga_deals')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'vga_deals' }, payload => {
           allDeals.unshift(payload.new);
-          document.getElementById('stat-total').innerText = allDeals.length;
-          document.getElementById('stat-steal').innerText = allDeals.filter(d => d.is_steal_deal).length + ' Unit';
+          updateStatsAndPillCounts();
           renderListings();
         })
         .subscribe();
+    }
+
+    function updateStatsAndPillCounts() {
+      document.getElementById('stat-total').innerText = allDeals.length;
+      document.getElementById('stat-steal').innerText = allDeals.filter(d => d.is_steal_deal).length + ' Unit';
+      
+      const tokpedCount = allDeals.filter(d => d.platform === 'Tokopedia').length;
+      const fbCount = allDeals.filter(d => d.platform === 'Facebook').length;
+      const tocoCount = allDeals.filter(d => d.platform === 'Toco').length;
+
+      document.getElementById('stat-tokped-fb').innerText = (tokpedCount + fbCount) + ' Unit';
+      document.getElementById('stat-toco').innerText = tocoCount + ' Unit';
+
+      document.getElementById('count-all').innerText = allDeals.length;
+      document.getElementById('count-tokped').innerText = tokpedCount;
+      document.getElementById('count-fb').innerText = fbCount;
+      document.getElementById('count-toco').innerText = tocoCount;
+    }
+
+    function setPlatform(platform) {
+      selectedPlatform = platform;
+      
+      // Update UI Pills
+      ['all', 'tokped', 'fb', 'toco'].forEach(k => {
+        const el = document.getElementById(`pill-${k}`);
+        if (!el) return;
+        const isActive = (k === 'all' && platform === 'ALL') ||
+                         (k === 'tokped' && platform === 'Tokopedia') ||
+                         (k === 'fb' && platform === 'Facebook') ||
+                         (k === 'toco' && platform === 'Toco');
+        if (isActive) {
+          el.className = 'platform-pill active px-3 py-1.5 rounded-lg text-xs font-bold border border-[#03AC0E] bg-[#03AC0E] text-white whitespace-nowrap transition flex items-center gap-1.5 shadow-sm';
+        } else {
+          el.className = 'platform-pill px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-slate-100 text-slate-700 whitespace-nowrap transition flex items-center gap-1.5';
+        }
+      });
+
+      renderListings();
+    }
+
+    function toggleStealFilter() {
+      onlyStealDeals = !onlyStealDeals;
+      const btn = document.getElementById('btnStealToggle');
+      if (onlyStealDeals) {
+        btn.className = 'deal-pill active flex-1 py-2 px-3 rounded-lg text-xs font-bold border border-amber-500 bg-amber-500 text-white transition flex items-center justify-center gap-1.5 shadow-sm';
+      } else {
+        btn.className = 'deal-pill flex-1 py-2 px-3 rounded-lg text-xs font-bold border border-slate-200 bg-slate-100 text-slate-700 transition flex items-center justify-center gap-1.5';
+      }
+      renderListings();
     }
 
     function checkViability() {
@@ -241,94 +332,103 @@
       resBox.classList.remove('hidden');
 
       if (price <= maxKulak) {
-        resBox.className = 'mt-4 p-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs flex justify-between items-center';
+        resBox.className = 'mt-3 p-3 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs flex justify-between items-center';
         resBox.innerHTML = `
           <div>
-            <div class="font-extrabold text-sm text-[#03AC0E] flex items-center gap-1.5 mb-1">
-              <i class="fa-solid fa-circle-check"></i> SANGAT LAYAK DIBELI (STEAL DEAL)
+            <div class="font-extrabold text-sm text-[#03AC0E] flex items-center gap-1 mb-0.5">
+              <i class="fa-solid fa-circle-check"></i> SANGAT LAYAK (STEAL DEAL)
             </div>
-            <div class="text-slate-600">Harga seller Rp ${price.toLocaleString('id-ID')} di bawah batas aman kulak (Rp ${maxKulak.toLocaleString('id-ID')}).</div>
+            <div class="text-slate-600">Harga seller Rp ${price.toLocaleString('id-ID')} &le; batas aman (Rp ${maxKulak.toLocaleString('id-ID')}).</div>
           </div>
           <div class="text-right">
-            <div class="text-xs text-slate-500 font-bold">Potensi Cuan</div>
-            <div class="text-lg font-black text-[#03AC0E]">+Rp ${profit.toLocaleString('id-ID')} <span class="text-xs">(${roi}% ROI)</span></div>
+            <div class="text-[10px] text-slate-500 font-bold">Potensi Cuan</div>
+            <div class="text-base font-black text-[#03AC0E]">+Rp ${profit.toLocaleString('id-ID')} <span class="text-[10px]">(${roi}%)</span></div>
           </div>
         `;
       } else if (price <= med) {
-        resBox.className = 'mt-4 p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs flex justify-between items-center';
+        resBox.className = 'mt-3 p-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs flex justify-between items-center';
         resBox.innerHTML = `
           <div>
-            <div class="font-extrabold text-sm text-amber-600 flex items-center gap-1.5 mb-1">
-              <i class="fa-solid fa-handshake"></i> MARGIN TIPIS (BISA DINEGO)
+            <div class="font-extrabold text-xs sm:text-sm text-amber-600 flex items-center gap-1 mb-0.5">
+              <i class="fa-solid fa-handshake"></i> BISA DINEGO (MARGIN TIPIS)
             </div>
-            <div class="text-slate-600">Nego turun lagi agar dapat margin aman 16%+.</div>
+            <div class="text-slate-600">Nego turun sedikit lagi untuk margin aman.</div>
           </div>
           <div class="text-right">
-            <div class="text-xs text-slate-500 font-bold">Sisa Margin</div>
-            <div class="text-base font-extrabold text-amber-600">+Rp ${profit.toLocaleString('id-ID')}</div>
+            <div class="text-[10px] text-slate-500 font-bold">Sisa Margin</div>
+            <div class="text-sm font-extrabold text-amber-600">+Rp ${profit.toLocaleString('id-ID')}</div>
           </div>
         `;
       } else {
-        resBox.className = 'mt-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-800 text-xs';
+        resBox.className = 'mt-3 p-3 rounded-xl border border-red-200 bg-red-50 text-red-800 text-xs';
         resBox.innerHTML = `
-          <div class="font-extrabold text-sm text-red-700 flex items-center gap-1.5 mb-1">
+          <div class="font-extrabold text-xs sm:text-sm text-red-700 flex items-center gap-1 mb-0.5">
             <i class="fa-solid fa-circle-xmark"></i> JANGAN DIBELI (KEMAHALAN)
           </div>
-          <div>Harga Rp ${price.toLocaleString('id-ID')} lebih mahal dari estimasi harga pasar (normal Rp ${med.toLocaleString('id-ID')}).</div>
+          <div>Harga Rp ${price.toLocaleString('id-ID')} di atas pasar wajar (normal Rp ${med.toLocaleString('id-ID')}).</div>
         `;
       }
     }
 
-    function setTab(tab) {
-      currentTab = tab;
-      document.getElementById('tabAll').className = tab === 'ALL' ? 'tab-btn active px-3 py-1.5 bg-[#03AC0E] border border-[#03AC0E] rounded-lg text-xs font-bold text-white transition' : 'tab-btn px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition';
-      document.getElementById('tabSteal').className = tab === 'STEAL' ? 'tab-btn active px-3 py-1.5 bg-[#03AC0E] border border-[#03AC0E] rounded-lg text-xs font-bold text-white transition' : 'tab-btn px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition';
-      renderListings();
-    }
-
     function renderListings() {
       const q = document.getElementById('searchInput').value.toLowerCase();
-      const p = document.getElementById('platformFilter').value;
       const grid = document.getElementById('listingsGrid');
       grid.innerHTML = '';
 
       const filtered = allDeals.filter(d => {
-        if (currentTab === 'STEAL' && !d.is_steal_deal) return false;
-        const matchQ = (d.title && d.title.toLowerCase().includes(q)) || (d.location && d.location.toLowerCase().includes(q));
-        const matchP = p === 'ALL' || d.platform === p;
+        if (onlyStealDeals && !d.is_steal_deal) return false;
+        const matchQ = (d.title && d.title.toLowerCase().includes(q)) || (d.location && d.location.toLowerCase().includes(q)) || (d.brand && d.brand.toLowerCase().includes(q));
+        const matchP = selectedPlatform === 'ALL' || d.platform === selectedPlatform;
         return matchQ && matchP;
       });
 
+      document.getElementById('resultCountBadge').innerText = `${filtered.length} Unit`;
+
       if (filtered.length === 0) {
-        grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-400 text-xs font-semibold">Tidak ada unit yang sesuai dengan filter.</div>';
+        grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-400 text-xs font-semibold">Tidak ada unit yang sesuai dengan filter platform atau kata kunci.</div>';
         return;
       }
 
       filtered.forEach(d => {
         let badgeColor = 'text-[#03AC0E] bg-emerald-50 border-emerald-200';
-        if (d.platform === 'Facebook') badgeColor = 'text-blue-600 bg-blue-50 border-blue-200';
-        if (d.platform === 'Toco') badgeColor = 'text-orange-600 bg-orange-50 border-orange-200';
+        let platformDot = '#03AC0E';
+        if (d.platform === 'Facebook') { badgeColor = 'text-blue-600 bg-blue-50 border-blue-200'; platformDot = '#1877F2'; }
+        if (d.platform === 'Toco') { badgeColor = 'text-orange-600 bg-orange-50 border-orange-200'; platformDot = '#F97316'; }
+
+        let stealCardHeader = '';
+        if (d.is_steal_deal) {
+          stealCardHeader = `
+            <div class="mb-2 px-2 py-0.5 bg-amber-50 border border-amber-200 rounded-md flex items-center justify-between text-[11px]">
+              <span class="font-extrabold text-amber-700 flex items-center gap-1"><i class="fa-solid fa-fire text-amber-500"></i> STEAL DEAL</span>
+              <span class="font-bold text-amber-800 text-[10px]">Pasti Cuan</span>
+            </div>
+          `;
+        }
 
         grid.innerHTML += `
-          <div class="card-tokped p-4 flex flex-col justify-between hover:shadow-md transition ${d.is_steal_deal ? 'border-amber-300 ring-1 ring-amber-200' : ''}">
+          <div class="card-tokped p-3.5 sm:p-4 flex flex-col justify-between hover:shadow-md transition ${d.is_steal_deal ? 'border-amber-300 ring-1 ring-amber-200' : ''}">
             <div>
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded border ${badgeColor} uppercase">${d.platform}</span>
-                <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 rounded text-slate-700">${d.fan_type || '2 Fan'}</span>
+              ${stealCardHeader}
+              <div class="flex justify-between items-center mb-1.5">
+                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded border ${badgeColor} uppercase tracking-wider flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${platformDot}"></span>
+                  ${d.platform}
+                </span>
+                <span class="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 rounded text-slate-600">${d.fan_type || '2 Fan'}</span>
               </div>
               <h4 class="font-bold text-slate-800 text-xs line-clamp-2 leading-relaxed" title="${d.title}">${d.title}</h4>
-              <div class="flex items-center gap-2 mt-2 text-[11px] text-slate-500 font-medium">
-                <span class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] font-semibold text-slate-600">${d.brand || 'OEM'}</span>
-                <span class="truncate max-w-[120px]"><i class="fa-solid fa-location-dot text-slate-400"></i> ${d.location || 'Indonesia'}</span>
+              <div class="flex items-center gap-2 mt-2 text-[10px] text-slate-500 font-medium">
+                <span class="px-1.5 py-0.2 bg-slate-100 rounded font-semibold text-slate-600">${d.brand || 'OEM'}</span>
+                <span class="truncate max-w-[130px]"><i class="fa-solid fa-location-dot text-slate-400"></i> ${d.location || 'Indonesia'}</span>
               </div>
             </div>
-            <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
               <div>
-                <div class="text-[10px] text-slate-400 font-semibold">Harga</div>
+                <div class="text-[9px] text-slate-400 font-semibold uppercase">Harga</div>
                 <div class="font-extrabold text-sm text-[#03AC0E]">${d.price_raw || 'Rp ' + Number(d.price).toLocaleString('id-ID')}</div>
               </div>
-              <a href="${d.url}" target="_blank" class="px-3 py-1.5 bg-[#03AC0E] hover:bg-[#028A0B] text-white text-xs font-bold rounded-lg transition shadow-sm">
-                Beli / Chat &rarr;
+              <a href="${d.url}" target="_blank" class="px-3 py-1.5 bg-[#03AC0E] hover:bg-[#028A0B] text-white text-xs font-bold rounded-lg transition shadow-sm flex items-center gap-1">
+                <span>Beli/Chat</span> <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
               </a>
             </div>
           </div>
@@ -337,7 +437,6 @@
     }
 
     document.getElementById('searchInput').addEventListener('input', renderListings);
-    document.getElementById('platformFilter').addEventListener('change', renderListings);
     loadData();
   </script>
 </body>
