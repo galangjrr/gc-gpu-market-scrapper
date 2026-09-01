@@ -1,66 +1,10 @@
 [
   {
-    "title": "Vga rtx 2060 super 8gb",
-    "price_raw": "Gratis",
-    "price": 0,
-    "location": "Karawang",
-    "url": "https://www.facebook.com/marketplace/item/1631767408578848/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "VGA ASUS STRIX RX580 8 GB & PSU PCCOLLER KF550",
-    "price_raw": "Gratis",
-    "price": 0,
-    "location": "Bogor, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/1546478129981266/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "rx 570 4gb ddr 5",
-    "price_raw": "Rp1.000.000",
-    "price": 1000000,
-    "location": "Cisoka, Jawa Barat, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/1105472085495969/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "RX 580 4GB",
-    "price_raw": "Rp1.200.000",
-    "price": 1200000,
-    "location": "Ciranggon, Jawa Barat, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/1778521656482016/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "VGA RX 5700XT",
-    "price_raw": "Rp1.900",
-    "price": 1900000,
-    "location": "Jakarta, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/1362034259398718/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "RX 6600 8GB",
-    "price_raw": "Rp2.300.000",
-    "price": 2300000,
-    "location": "Bekasi",
-    "url": "https://www.facebook.com/marketplace/item/1682297919531399/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "￼VGA RX6500 XT ASUS DUAL FAN , LIKE NEW",
-    "price_raw": "Rp2.499.000",
-    "price": 2499000,
-    "location": "Tangerang",
-    "url": "https://www.facebook.com/marketplace/item/2152177515717822/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "VGA RX 6600 XT",
-    "price_raw": "Rp2.500.000",
-    "price": 2500000,
-    "location": "Jakarta, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/1053604984076825/",
+    "title": "GTX 1660 Ti 6GB",
+    "price_raw": "Rp2.000.000",
+    "price": 2000000,
+    "location": "Ciseeng, Jawa Barat, Indonesia",
+    "url": "https://www.facebook.com/marketplace/item/2825781954487760/",
     "source": "facebook_marketplace"
   },
   {
@@ -88,35 +32,35 @@
     "source": "facebook_marketplace"
   },
   {
-    "title": "VGA MSI RADEON RX 6600 MECH 2X 8GB GDDR6 DUAL FAN - SEKEN",
+    "title": "Vga Gpu Palit GTX 1080 TI Jetstream 11GB",
     "price_raw": "Rp2.600.000",
     "price": 2600000,
-    "location": "Karawang",
-    "url": "https://www.facebook.com/marketplace/item/1826511025002037/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "VGA RX 6600 xt 8gb gddr6",
-    "price_raw": "Rp3.500.000",
-    "price": 3500000,
-    "location": "Jakarta, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/2901692900206373/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "VGA AMD RX6600",
-    "price_raw": "Rp3.500.000",
-    "price": 3500000,
     "location": "Bekasi",
-    "url": "https://www.facebook.com/marketplace/item/1484878366784872/",
+    "url": "https://www.facebook.com/marketplace/item/2227319231445914/",
     "source": "facebook_marketplace"
   },
   {
-    "title": "RX 6700xt 12GB",
-    "price_raw": "Rp3.500.000",
-    "price": 3500000,
-    "location": "Tangerang",
-    "url": "https://www.facebook.com/marketplace/item/1609200530907815/",
+    "title": "VGA GIGABYTE RTX 3050 6GB DUAL FAN (SECOND)",
+    "price_raw": "Rp3.200.000",
+    "price": 3200000,
+    "location": "Pamulang 2, Jawa Barat, Indonesia",
+    "url": "https://www.facebook.com/marketplace/item/2136246120614088/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "#wts RTX 3070Ti Manli 8GB GDDR6X FULLSET",
+    "price_raw": "Rp4.000.000",
+    "price": 4000000,
+    "location": "Jampang, Jawa Barat, Indonesia",
+    "url": "https://www.facebook.com/marketplace/item/1795957894728034/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "RTX 3060Ti",
+    "price_raw": "Rp4.150.000",
+    "price": 4150000,
+    "location": "Jakarta, Indonesia",
+    "url": "https://www.facebook.com/marketplace/item/2332608124210663/",
     "source": "facebook_marketplace"
   }
 ]

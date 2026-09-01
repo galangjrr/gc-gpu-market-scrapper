@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VGA Hunter Cloud • Clean Curated</title>
+  <title>VGA Hunter Cloud • Live Supabase</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap');
@@ -49,8 +50,11 @@
       <div class="flex items-center gap-3">
         <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-[#03AC0E] px-3 py-1.5 rounded-lg text-xs font-bold" id="realtimePill">
           <span class="w-2 h-2 rounded-full bg-[#03AC0E] animate-ping"></span>
-          <span>Realtime Connected</span>
+          <span id="realtimeStatus">Realtime Connected</span>
         </div>
+        <button onclick="loadData()" class="px-3.5 py-1.5 bg-[#03AC0E] hover:bg-[#028A0B] text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
+          <i class="fa-solid fa-arrows-rotate"></i> Sync
+        </button>
       </div>
     </div>
   </header>
@@ -70,9 +74,9 @@
         <div class="text-xs text-emerald-600 font-semibold mt-1">Di Bawah Batas Kulak</div>
       </div>
       <div class="card-tokped p-4">
-        <div class="text-xs font-semibold text-slate-500">Filter Sampah Aktif</div>
-        <div class="text-xl sm:text-2xl font-extrabold mt-1 text-blue-600">Auto-Filtered</div>
-        <div class="text-xs text-slate-500 mt-1">Matot / Box / Kabel Dibuang</div>
+        <div class="text-xs font-semibold text-slate-500">Database Supabase</div>
+        <div class="text-xl sm:text-2xl font-extrabold mt-1 text-blue-600">Online</div>
+        <div class="text-xs text-slate-500 mt-1">Realtime PostgreSQL</div>
       </div>
       <div class="card-tokped p-4">
         <div class="text-xs font-semibold text-slate-500">Platform Terhubung</div>
@@ -81,12 +85,60 @@
       </div>
     </section>
 
+    <!-- DECISION CALCULATOR -->
+    <section class="card-tokped p-6 border-l-4 border-l-[#03AC0E]">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="p-1.5 bg-emerald-50 text-[#03AC0E] rounded-md text-sm"><i class="fa-solid fa-calculator"></i></span>
+        <h2 class="text-base font-extrabold text-slate-800">Kalkulator Cek Kelayakan Beli</h2>
+      </div>
+      <p class="text-xs text-slate-500 mb-4">Input harga dari seller untuk hitung batas aman kulak &amp; potensi margin untung.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+        <div class="md:col-span-4">
+          <label class="block text-xs font-bold text-slate-600 mb-1">Model VGA</label>
+          <select id="calcModel" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
+            <option value="RTX 4060">RTX 4060</option>
+            <option value="RTX 3070">RTX 3070</option>
+            <option value="RTX 3060 TI">RTX 3060 TI</option>
+            <option value="RTX 3060" selected>RTX 3060</option>
+            <option value="RTX 3050">RTX 3050</option>
+            <option value="RTX 2060 SUPER">RTX 2060 SUPER</option>
+            <option value="RTX 2060">RTX 2060</option>
+            <option value="GTX 1660 SUPER">GTX 1660 SUPER</option>
+            <option value="RX 7600">RX 7600</option>
+            <option value="RX 6700 XT">RX 6700 XT</option>
+            <option value="RX 6600 XT">RX 6600 XT</option>
+            <option value="RX 6600">RX 6600</option>
+          </select>
+        </div>
+        <div class="md:col-span-3">
+          <label class="block text-xs font-bold text-slate-600 mb-1">Tipe Fan</label>
+          <select id="calcFan" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
+            <option value="triple">Triple Fan (+8% Valuasi)</option>
+            <option value="dual" selected>Dual Fan (Standard)</option>
+            <option value="single">Single Fan (-6% Valuasi)</option>
+          </select>
+        </div>
+        <div class="md:col-span-3">
+          <label class="block text-xs font-bold text-slate-600 mb-1">Harga Ditawarkan Seller (Rp)</label>
+          <input type="number" id="calcPrice" placeholder="Contoh: 3200000" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
+        </div>
+        <div class="md:col-span-2">
+          <button onclick="checkViability()" class="w-full py-2 bg-[#03AC0E] hover:bg-[#028A0B] text-white font-bold text-sm rounded-lg transition shadow-sm">
+            Cek Kelayakan
+          </button>
+        </div>
+      </div>
+
+      <div id="calcResult" class="hidden mt-4 p-4 rounded-xl text-sm transition"></div>
+    </section>
+
     <!-- CLEAN LISTINGS FEED -->
     <section class="card-tokped p-6 space-y-4">
       <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 pb-3 border-b border-slate-100">
         <div>
-          <h3 class="text-base font-extrabold text-slate-800">Katalog Listing VGA Normal (Tersaring)</h3>
-          <p class="text-xs text-slate-500">Unit cacat/kanibal dibersihkan otomatis.</p>
+          <h3 class="text-base font-extrabold text-slate-800">Katalog Listing Real-time Cloud</h3>
+          <p class="text-xs text-slate-500">Tersinkronisasi otomatis dengan database Supabase</p>
         </div>
 
         <div class="flex items-center gap-2">
@@ -109,36 +161,121 @@
         </select>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="listingsGrid"></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="listingsGrid">
+        <div class="col-span-full text-center py-12 text-slate-400 text-xs font-semibold">Memuat data dari Supabase...</div>
+      </div>
     </section>
 
   </main>
 
   <script>
-    // ============================================================
-    // KONFIGURASI SUPABASE LIVE
-    // ============================================================
     const SUPABASE_URL = "https://bgsmqeglwfjmkxbvbeay.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnc21xZWdsd2ZqbWt4YnZiZWF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNzk3ODEsImV4cCI6MjEwMzg1NTc4MX0.fqdvKhXuXgfZYqu-M2yJrNgLla7B-8xdC3Vht_uEBVY";
 
-    let supabase = null;
+    let dbClient = null;
     let allDeals = [];
     let currentTab = 'ALL';
 
+    const priceBaselines = {
+      "RTX 4060": 4300000, "RTX 3070": 4300000, "RTX 3060 TI": 3800000,
+      "RTX 3060": 3400000, "RTX 3050": 2300000, "RTX 2060 SUPER": 2400000,
+      "RTX 2060": 2100000, "GTX 1660 SUPER": 1650000, "RX 7600": 4200000,
+      "RX 6700 XT": 3800000, "RX 6600 XT": 2800000, "RX 6600": 2400000
+    };
+
     try {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: false }
+      });
     } catch(e) {
-      console.warn("Supabase init error:", e);
+      console.error("Supabase Init Error:", e);
     }
 
     async function loadData() {
-      if (!supabase) return;
-      const { data } = await supabase.from('vga_deals').select('*').order('created_at', { ascending: false }).limit(100);
-      if (data) {
-        allDeals = data;
-        document.getElementById('stat-total').innerText = allDeals.length;
-        document.getElementById('stat-steal').innerText = allDeals.filter(d => d.is_steal_deal).length + ' Unit';
-        renderListings();
+      if (!dbClient) return;
+      try {
+        const { data, error } = await dbClient
+          .from('vga_deals')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(150);
+
+        if (error) throw error;
+        if (data) {
+          allDeals = data;
+          document.getElementById('stat-total').innerText = allDeals.length;
+          document.getElementById('stat-steal').innerText = allDeals.filter(d => d.is_steal_deal).length + ' Unit';
+          renderListings();
+        }
+      } catch (err) {
+        console.error("Fetch Data Error:", err);
+      }
+    }
+
+    if (dbClient) {
+      dbClient
+        .channel('public:vga_deals')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'vga_deals' }, payload => {
+          allDeals.unshift(payload.new);
+          document.getElementById('stat-total').innerText = allDeals.length;
+          document.getElementById('stat-steal').innerText = allDeals.filter(d => d.is_steal_deal).length + ' Unit';
+          renderListings();
+        })
+        .subscribe();
+    }
+
+    function checkViability() {
+      const model = document.getElementById('calcModel').value;
+      const fan = document.getElementById('calcFan').value;
+      const price = parseInt(document.getElementById('calcPrice').value);
+      const resBox = document.getElementById('calcResult');
+
+      if (!price || isNaN(price)) return;
+      const baseMed = priceBaselines[model] || 3000000;
+      let multiplier = fan === 'triple' ? 1.08 : fan === 'single' ? 0.94 : 1.0;
+      const med = Math.round(baseMed * multiplier);
+      const maxKulak = Math.round(med * 0.84);
+      const profit = med - price;
+      const roi = ((profit / price) * 100).toFixed(1);
+
+      resBox.classList.remove('hidden');
+
+      if (price <= maxKulak) {
+        resBox.className = 'mt-4 p-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs flex justify-between items-center';
+        resBox.innerHTML = `
+          <div>
+            <div class="font-extrabold text-sm text-[#03AC0E] flex items-center gap-1.5 mb-1">
+              <i class="fa-solid fa-circle-check"></i> SANGAT LAYAK DIBELI (STEAL DEAL)
+            </div>
+            <div class="text-slate-600">Harga seller Rp ${price.toLocaleString('id-ID')} di bawah batas aman kulak (Rp ${maxKulak.toLocaleString('id-ID')}).</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-500 font-bold">Potensi Cuan</div>
+            <div class="text-lg font-black text-[#03AC0E]">+Rp ${profit.toLocaleString('id-ID')} <span class="text-xs">(${roi}% ROI)</span></div>
+          </div>
+        `;
+      } else if (price <= med) {
+        resBox.className = 'mt-4 p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs flex justify-between items-center';
+        resBox.innerHTML = `
+          <div>
+            <div class="font-extrabold text-sm text-amber-600 flex items-center gap-1.5 mb-1">
+              <i class="fa-solid fa-handshake"></i> MARGIN TIPIS (BISA DINEGO)
+            </div>
+            <div class="text-slate-600">Nego turun lagi agar dapat margin aman 16%+.</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-500 font-bold">Sisa Margin</div>
+            <div class="text-base font-extrabold text-amber-600">+Rp ${profit.toLocaleString('id-ID')}</div>
+          </div>
+        `;
+      } else {
+        resBox.className = 'mt-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-800 text-xs';
+        resBox.innerHTML = `
+          <div class="font-extrabold text-sm text-red-700 flex items-center gap-1.5 mb-1">
+            <i class="fa-solid fa-circle-xmark"></i> JANGAN DIBELI (KEMAHALAN)
+          </div>
+          <div>Harga Rp ${price.toLocaleString('id-ID')} lebih mahal dari estimasi harga pasar (normal Rp ${med.toLocaleString('id-ID')}).</div>
+        `;
       }
     }
 
@@ -157,10 +294,15 @@
 
       const filtered = allDeals.filter(d => {
         if (currentTab === 'STEAL' && !d.is_steal_deal) return false;
-        const matchQ = d.title.toLowerCase().includes(q) || (d.location && d.location.toLowerCase().includes(q));
+        const matchQ = (d.title && d.title.toLowerCase().includes(q)) || (d.location && d.location.toLowerCase().includes(q));
         const matchP = p === 'ALL' || d.platform === p;
         return matchQ && matchP;
       });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-400 text-xs font-semibold">Tidak ada unit yang sesuai dengan filter.</div>';
+        return;
+      }
 
       filtered.forEach(d => {
         let badgeColor = 'text-[#03AC0E] bg-emerald-50 border-emerald-200';
@@ -168,7 +310,7 @@
         if (d.platform === 'Toco') badgeColor = 'text-orange-600 bg-orange-50 border-orange-200';
 
         grid.innerHTML += `
-          <div class="card-tokped p-4 flex flex-col justify-between hover:shadow-md transition">
+          <div class="card-tokped p-4 flex flex-col justify-between hover:shadow-md transition ${d.is_steal_deal ? 'border-amber-300 ring-1 ring-amber-200' : ''}">
             <div>
               <div class="flex justify-between items-center mb-2">
                 <span class="text-[10px] font-extrabold px-2 py-0.5 rounded border ${badgeColor} uppercase">${d.platform}</span>
