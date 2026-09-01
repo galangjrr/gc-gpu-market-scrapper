@@ -7,6 +7,7 @@ import urllib.request
 from scraper import scrape_fb_marketplace
 from scraper_tokped import scrape_tokopedia_vga
 from scraper_toco import scrape_toco_vga
+from sync_supabase import sync_deals_to_supabase
 
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1544396122817167523/Ior0SHvrYqGkuCpzU1zz0beB8YJGIzxFeeuHGvR67Hp0HqyCRLMBHT6npGmMWfldKxjK"
 
@@ -237,7 +238,14 @@ async def run_sniper_round():
 
     print("\n" + "="*50)
     print(f"[*] RINGKASAN PEMINDAIAN SNIPER:")
-    print(f"    - Total listing discan: {len(all_deals)}")
+    print(f"[*] Total valid deals ditemukan: {len(all_deals)}")
+    
+    # Sinkronisasi ke Supabase Cloud
+    try:
+        sync_deals_to_supabase()
+    except Exception as e:
+        print(f"[-] Supabase sync error: {e}")
+        
     print(f"    - Listing lama dilewati: {already_seen_count}")
     print(f"    - Diblokir (VGA ampas/matot/dus): {junk_blocked_count}")
     print(f"    - Dilewati (Harga kemahalan/gak ada margin): {overprice_count}")

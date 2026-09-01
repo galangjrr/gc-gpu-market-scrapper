@@ -4,9 +4,9 @@ import urllib.request
 import urllib.parse
 from generate_dashboard import parse_gpu_specs
 
-# KONFIGURASI SUPABASE (Isi dari Dashboard Supabase Anda)
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://YOUR_PROJECT_ID.supabase.co")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "YOUR_SUPABASE_SERVICE_ROLE_KEY")
+# KONFIGURASI SUPABASE LIVE
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://bgsmqeglwfjmkxbvbeay.supabase.co")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnc21xZWdsd2ZqbWt4YnZiZWF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNzk3ODEsImV4cCI6MjEwMzg1NTc4MX0.fqdvKhXuXgfZYqu-M2yJrNgLla7B-8xdC3Vht_uEBVY")
 
 def sync_deals_to_supabase():
     if "YOUR_PROJECT" in SUPABASE_URL:
