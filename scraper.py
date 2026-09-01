@@ -17,11 +17,17 @@ GPU_REGEX_PATTERN = re.compile(
     re.IGNORECASE
 )
 
-# BLACKLIST MUTLAK NON-GPU & MAINAN / FIGURE
+# BLACKLIST MUTLAK NON-GPU & VGA RUSAK / NO DISPLAY / MATOT / SAMPAH
 BANNED_NON_GPU = [
+    "no display", "nodisplay", "no disp", "no dp", "matot", "mati total", "mati",
+    "artefak", "artifact", "artifak", "garis", "bangkai", "kanibal", "kanibalan",
+    "part saja", "part only", "rusak", "servisan", "short", "hangus", "gosong",
+    "hanya dus", "box saja", "kotak saja", "dus saja", "cooler only", "heatsink",
+    "fan replacement", "kipas saja", "backplate", "bracket", "kabel riser", "riser card",
+    "kabel pcie", "dock egpu", "casing egpu", "dummy plug", "converter", "thermal pad",
+    "baut", "gt 710", "gt 730", "gt 610", "gt 210", "sepeda", "gunung", "road bike",
     "gundam", "gunpla", "bandai", "mokit", "figure", "figurine", "model kit", "tamiya",
-    "nendoroid", "hotwheels", "lego", "kamar", "kost", "kontrakan", "sewa", "rumah",
-    "apartemen", "tanah", "mobil", "motor", "baju", "sepatu", "kursi", "meja", "ps4", "ps5", "iphone"
+    "kamar", "kost", "kontrakan", "sewa", "rumah", "apartemen", "tanah", "mobil", "motor"
 ]
 
 def parse_price(text: str) -> int:
