@@ -44,7 +44,7 @@ def sync_deals_to_supabase():
         return
 
     # Kirim ke Supabase REST API (Upsert on URL conflict)
-    api_url = f"{SUPABASE_URL}/rest/v1/vga_deals"
+    api_url = f"{SUPABASE_URL}/rest/v1/vga_deals?on_conflict=url"
     headers = {
         "apikey": SUPABASE_SERVICE_KEY,
         "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
