@@ -1,18 +1,106 @@
 [
   {
-    "title": "Sapphire Nitro RX 580 8 GB",
-    "price_raw": "Rp1.000.000",
-    "price": 1000000,
-    "location": "Jakarta, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/2180038475891336/",
+    "title": "Tanpa Judul",
+    "price_raw": "Marketplace",
+    "price": 0,
+    "location": "-",
+    "url": "https://www.facebook.com/marketplace/",
     "source": "facebook_marketplace"
   },
   {
-    "title": "Dus Bekas VGA RX 6700 XT",
-    "price_raw": "Rp123",
-    "price": 1230000,
+    "title": "Tanpa Judul",
+    "price_raw": "Jual barang",
+    "price": 0,
+    "location": "-",
+    "url": "https://www.facebook.com/marketplace/create/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "Tanpa Judul",
+    "price_raw": "Kendaraan",
+    "price": 0,
+    "location": "-",
+    "url": "https://www.facebook.com/marketplace/jakarta/search/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "Tanpa Judul",
+    "price_raw": "Sewa Properti",
+    "price": 0,
+    "location": "-",
+    "url": "https://www.facebook.com/marketplace/jakarta/propertyrentals/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "Tanpa Judul",
+    "price_raw": "Barang Gratis",
+    "price": 0,
+    "location": "-",
+    "url": "https://www.facebook.com/marketplace/jakarta/free/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "Tanpa Judul",
+    "price_raw": "Kategori lainnya",
+    "price": 0,
+    "location": "-",
+    "url": "https://www.facebook.com/marketplace/categories/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "ASUS TUF A16 FA608UP GeForce RTXTM 5070 8GB - RYZEN 7 260 16GB 1TB WINDOWS 11 16.0 INCH WUXGA 165HZ",
+    "price_raw": "Gratis",
+    "price": 0,
     "location": "Jakarta, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/2179809779270111/",
+    "url": "https://www.facebook.com/marketplace/item/1353996970278199/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "Tanpa Judul",
+    "price_raw": "Bumi Serpong, Jawa Barat, Indonesia",
+    "price": 0,
+    "location": "-",
+    "url": "https://www.facebook.com/marketplace/item/1803015460879052/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "PC Gaming budget kentang BISA ECER",
+    "price_raw": "Gratis",
+    "price": 0,
+    "location": "Depok",
+    "url": "https://www.facebook.com/marketplace/item/1666752271533882/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "Jual Cepat lagi BU Laptop Asus Tuf Gaming F15 Intel Core i5 Gen 12 Ram 8 Gb Ssd 512 Gb Rtx 3050-4",
+    "price_raw": "Rp10.700",
+    "price": 10700,
+    "location": "Jakarta, Indonesia",
+    "url": "https://www.facebook.com/marketplace/item/888695234099815/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "vga RTX 2060SUPER",
+    "price_raw": "Rp2.400.000",
+    "price": 2400000,
+    "location": "Sukabumi",
+    "url": "https://www.facebook.com/marketplace/item/1515591387267774/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "Vga RX 6600XT 8GB DDR6 Dual Fan Gaming",
+    "price_raw": "Rp2.590.000",
+    "price": 2590000,
+    "location": "Bogor, Indonesia",
+    "url": "https://www.facebook.com/marketplace/item/1093282553198638/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "Vga RX 6600XT 8GB DDR6 Dual Fan Gaming",
+    "price_raw": "Rp2.590.000",
+    "price": 2590000,
+    "location": "Tangerang",
+    "url": "https://www.facebook.com/marketplace/item/1107111061937714/",
     "source": "facebook_marketplace"
   },
   {
@@ -24,19 +112,11 @@
     "source": "facebook_marketplace"
   },
   {
-    "title": "i7 7700 dan VGA GTX 1050 TI 4GB",
-    "price_raw": "Rp4.000.000",
-    "price": 4000000,
-    "location": "Purwakarta",
-    "url": "https://www.facebook.com/marketplace/item/4032505963719264/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "MSI GT60-E16F3IMS [RAM 20GB SSD+HDD DUAL VGA Nvidia GTX]",
-    "price_raw": "Rp6.900.000",
-    "price": 6900000,
-    "location": "Ciledug Selatan, Jawa Barat, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/1752701682668609/",
+    "title": "MSI Ventus 2X OC RTX 3050 8GB",
+    "price_raw": "Rp3.600.000",
+    "price": 3600000,
+    "location": "Jakarta, Indonesia",
+    "url": "https://www.facebook.com/marketplace/item/2267788117354822/",
     "source": "facebook_marketplace"
   }
 ]

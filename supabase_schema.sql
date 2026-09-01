@@ -1,5 +1,5 @@
 -- ============================================================
--- SUPABASE SCHEMA: VGA HUNTER ARBITRAGE
+-- SUPABASE SCHEMA: VGA HUNTER ARBITRAGE (SECURITY HARDENED)
 -- Paste script ini di Supabase > SQL Editor > Run
 -- ============================================================
 
@@ -30,16 +30,20 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.vga_deals;
 -- 4. Aktifkan Row Level Security (RLS) - Public Read, Scraper Write
 ALTER TABLE public.vga_deals ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow public read-only" ON public.vga_deals;
 CREATE POLICY "Allow public read-only" 
 ON public.vga_deals FOR SELECT 
 USING (true);
 
+DROP POLICY IF EXISTS "Allow service insert/update" ON public.vga_deals;
 CREATE POLICY "Allow service insert/update" 
 ON public.vga_deals FOR ALL 
 USING (true);
 
 -- 5. Postgres View: Hitung Harga Pasar Median Otomatis di DB
-CREATE OR REPLACE VIEW public.vga_market_stats AS
+-- Menggunakan security_invoker = on agar patuh terhadap RLS Supabase
+CREATE OR REPLACE VIEW public.vga_market_stats 
+WITH (security_invoker = on) AS
 SELECT 
     upper(split_part(title, ' ', 1) || ' ' || split_part(title, ' ', 2)) as model_group,
     count(*) as total_samples,

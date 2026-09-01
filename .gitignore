@@ -16,5 +16,6 @@ seen_deals.db
 .DS_Store
 
 # Temporary Test Files
+shopee_session/
 test_*.py
 diagnose_*.py
