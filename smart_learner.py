@@ -53,10 +53,12 @@ class SmartLearner:
             )
         """)
         
-        # Auto-Prune data > 60 hari agar storage tidak pernah bengkak (Maks < 5MB selamanya)
-        c.execute("DELETE FROM price_history WHERE created_at < datetime('now', '-60 days')")
-        c.execute("DELETE FROM deals WHERE seen_at < datetime('now', '-60 days')")
-        
+        # Auto-Prune data > 60 hari agar storage tidak pernah bengkak (Maks < 5MB)
+        try:
+            c.execute("DELETE FROM price_history WHERE created_at < datetime('now', '-60 days')")
+        except Exception:
+            pass
+            
         conn.commit()
         conn.close()
 
@@ -111,7 +113,7 @@ class SmartLearner:
         conn.close()
         
         if len(prices) < 3:
-            return None # Belum cukup data, gunakan default baseline
+            return None
             
         # Potong outlier 10% terendah dan tertinggi (Interquartile Trim)
         trim_start = int(len(prices) * 0.10)
@@ -121,7 +123,6 @@ class SmartLearner:
         n = len(clean_prices)
         median = clean_prices[n // 2] if n % 2 != 0 else int((clean_prices[n // 2 - 1] + clean_prices[n // 2]) / 2)
         
-        # Batas Kulak Pintar: 16% di bawah harga pasar median riil
         smart_max_kulak = int(median * 0.84)
         smart_min_floor = int(clean_prices[0] * 0.90)
         
@@ -135,20 +136,14 @@ class SmartLearner:
     def compute_steal_score(self, title: str, price: int, model: str, base_max_kulak: int) -> int:
         """
         Naive Bayes Scoring: Memberikan skor kecerdasan (0 - 100) seberapa cuan & legit postingan ini.
-        Faktor:
-        1. Deviasi Harga terhadap Batas Aman Kulak (Bobot 60%)
-        2. Bobot Kata Kunci Cuan (Bobot 40% - cth: "BU", "fullset", "pribadi", "mulus")
         """
-        # 1. Price Score (Maks 60 poin)
         price_diff = base_max_kulak - price
         if price_diff <= 0:
             price_score = 0
         else:
-            # Semakin murah dari max kulak, skor makin mendekati 60
             discount_pct = price_diff / base_max_kulak
             price_score = min(60, int(discount_pct * 120))
             
-        # 2. Text Keyword Bonus (Maks 40 poin)
         words = re.findall(r"[a-zA-Z0-9]{3,}", title.lower())
         word_bonus = 0
         
@@ -161,10 +156,6 @@ class SmartLearner:
         return total_score
 
     def get_adaptive_queries(self) -> list[str]:
-        """
-        Adaptive Query Generator: Menghasilkan variasi kata kunci pintar
-        yang memadukan seri GPU populer dengan modifier barang butuh uang (BU).
-        """
         core_gpus = ["rtx 3060", "rtx 4060", "rtx 3070", "rx 6600", "gtx 1660 super", "rtx 2060"]
         modifiers = ["", " second", " bu", " butuh uang", " mulus"]
         
