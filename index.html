@@ -288,20 +288,33 @@
     }
 
     async function sendRemoteCommand(cmd) {
-      if (!dbClient) return;
+      if (!dbClient) {
+        alert("Supabase client belum terhubung!");
+        return;
+      }
       try {
         const badge = document.getElementById('remoteStateBadge');
         badge.innerText = 'MENGIRIM...';
-        badge.className = 'text-[9px] px-2 py-0.2 bg-amber-500/20 text-amber-300 rounded font-bold border border-amber-500/30';
+        badge.className = 'text-[9px] px-2 py-0.2 bg-amber-500/20 text-amber-300 rounded font-bold border border-amber-500/30 animate-pulse';
         
         const { error } = await dbClient
           .from('bot_commands')
           .upsert({ id: 'main', command: cmd, updated_at: new Date().toISOString() });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase error:", error);
+          if (error.code === '42P01' || error.message.includes('not exist') || error.message.includes('404')) {
+            alert("⚠️ TABEL BELUM DIBUAT:\nSilakan jalankan SQL 'bot_commands' di Supabase SQL Editor terlebih dahulu agar fitur remote ini aktif.");
+          } else {
+            alert(`Error: ${error.message}`);
+          }
+          badge.innerText = 'ERROR';
+          badge.className = 'text-[9px] px-2 py-0.2 bg-red-500/20 text-red-300 rounded font-bold border border-red-500/30';
+          return;
+        }
         
         if (cmd === 'SCAN_NOW') {
-          badge.innerText = 'SCAN TRIGGERED';
+          badge.innerText = 'SCANNING...';
           badge.className = 'text-[9px] px-2 py-0.2 bg-emerald-500/20 text-emerald-300 rounded font-bold border border-emerald-500/30';
         } else if (cmd === 'PAUSE') {
           badge.innerText = 'PAUSED';
@@ -315,6 +328,7 @@
         }
       } catch (err) {
         console.error("Remote command error:", err);
+        alert(`Gagal mengirim perintah: ${err.message}`);
       }
     }
 
