@@ -62,9 +62,9 @@ def is_clean_gpu(title: str, price: int) -> bool:
         if junk in t_clean:
             return False
             
-    # Pastikan judul mengandung salah satu model yang valid
-    has_model = any(m in t_clean for m in ALL_TARGET_MODELS)
-    return has_model
+    # Wajib lolos regex model GPU presisi
+    from scraper_toco import GPU_STRICT_REGEX
+    return bool(GPU_STRICT_REGEX.search(t_clean))
 
 def parse_gpu_specs(title: str) -> dict:
     t_low = title.lower()
