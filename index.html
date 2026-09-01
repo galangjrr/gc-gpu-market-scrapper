@@ -494,21 +494,18 @@
         if (d.platform === 'Facebook') { badgeColor = 'text-blue-600 bg-blue-50 border-blue-200'; platformDot = '#1877F2'; }
         if (d.platform === 'Toco') { badgeColor = 'text-orange-600 bg-orange-50 border-orange-200'; platformDot = '#F97316'; }
 
-        const defaultThumb = "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=400&auto=format&fit=crop&q=60";
-        const imgSrc = (d.image_url && d.image_url.startsWith('http')) ? d.image_url : defaultThumb;
+        const hasRealImage = d.image_url && d.image_url.startsWith('http') && !d.image_url.includes('unsplash');
 
-        grid.innerHTML += `
-          <div class="card-tokped flex flex-col justify-between hover:shadow-md transition overflow-hidden ${d.is_steal_deal ? 'border-amber-300 ring-1 ring-amber-200' : ''}">
-            
-            <!-- 1. THUMBNAIL FOTO PRODUK (TOKOPEDIA STYLE) -->
+        let imageSection = '';
+        if (hasRealImage) {
+          imageSection = `
             <div class="relative w-full h-36 sm:h-44 bg-slate-100 overflow-hidden border-b border-slate-100 group">
-              <img src="${imgSrc}" 
+              <img src="${d.image_url}" 
                    alt="${d.title}" 
                    loading="lazy"
-                   onerror="this.onerror=null; this.src='${defaultThumb}';"
+                   onerror="this.parentElement.style.display='none';"
                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                    
-              <!-- PLATFORM BADGE OVERLAY -->
               <div class="absolute top-2 left-2">
                 <span class="text-[9px] font-extrabold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider flex items-center gap-1 bg-white/95 border ${badgeColor}">
                   <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${platformDot}"></span>
@@ -528,10 +525,38 @@
                 </div>
               ` : ''}
             </div>
+          `;
+        }
 
-            <!-- 2. DETAIL INFORMASI PRODUK -->
-            <div class="p-3 sm:p-4 flex flex-col justify-between flex-1">
+        let headerWithoutImg = '';
+        if (!hasRealImage) {
+          headerWithoutImg = `
+            <div class="flex justify-between items-center mb-2">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded border ${badgeColor} uppercase tracking-wider flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${platformDot}"></span>
+                  ${d.platform}
+                </span>
+                ${d.is_steal_deal ? `
+                  <span class="px-1.5 py-0.5 bg-amber-50 border border-amber-200 rounded text-amber-700 text-[10px] font-extrabold flex items-center gap-1">
+                    <i class="fa-solid fa-fire text-amber-500"></i> STEAL DEAL
+                  </span>
+                ` : ''}
+              </div>
+              <span class="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 rounded text-slate-600">${d.fan_type || '2 Fan'}</span>
+            </div>
+          `;
+        }
+
+        grid.innerHTML += `
+          <div class="card-tokped flex flex-col justify-between hover:shadow-md transition overflow-hidden ${d.is_steal_deal ? 'border-amber-300 ring-1 ring-amber-200' : ''}">
+            
+            ${imageSection}
+
+            <!-- DETAIL INFORMASI PRODUK -->
+            <div class="p-3.5 sm:p-4 flex flex-col justify-between flex-1">
               <div>
+                ${headerWithoutImg}
                 <h4 class="font-bold text-slate-800 text-xs line-clamp-2 leading-relaxed" title="${d.title}">${d.title}</h4>
                 <div class="flex items-center gap-2 mt-2 text-[10px] text-slate-500 font-medium">
                   <span class="px-1.5 py-0.2 bg-slate-100 rounded font-semibold text-slate-600">${d.brand || 'OEM'}</span>
