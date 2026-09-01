@@ -1,5 +1,5 @@
 -- ============================================================
--- SUPABASE SCHEMA: VGA HUNTER ARBITRAGE (SECURITY HARDENED)
+-- SUPABASE SCHEMA: VGA HUNTER ARBITRAGE (CLOUD COMMAND CENTER)
 -- Paste script ini di Supabase > SQL Editor > Run
 -- ============================================================
 
@@ -19,29 +19,41 @@ CREATE TABLE IF NOT EXISTS public.vga_deals (
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 2. Index untuk Query Cepat
 CREATE INDEX IF NOT EXISTS idx_vga_deals_price ON public.vga_deals(price);
 CREATE INDEX IF NOT EXISTS idx_vga_deals_platform ON public.vga_deals(platform);
 CREATE INDEX IF NOT EXISTS idx_vga_deals_created_at ON public.vga_deals(created_at DESC);
 
--- 3. Enable Supabase Realtime (Notifikasi Live ke Web Dashboard)
-ALTER PUBLICATION supabase_realtime ADD TABLE public.vga_deals;
+-- 2. Tabel Remote Control Bot (Scan Sekarang, Pause, Resume, Stop)
+CREATE TABLE IF NOT EXISTS public.bot_commands (
+    id TEXT PRIMARY KEY DEFAULT 'main',
+    command TEXT DEFAULT 'RESUME', -- SCAN_NOW, PAUSE, RESUME, STOP
+    state TEXT DEFAULT 'IDLE',      -- SCANNING, PAUSED, IDLE, OFFLINE
+    last_ping TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
 
--- 4. Aktifkan Row Level Security (RLS) - Public Read, Scraper Write
+INSERT INTO public.bot_commands (id, command, state) 
+VALUES ('main', 'RESUME', 'IDLE') 
+ON CONFLICT (id) DO NOTHING;
+
+-- 3. Enable Supabase Realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE public.vga_deals;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.bot_commands;
+
+-- 4. Enable RLS
 ALTER TABLE public.vga_deals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.bot_commands ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Allow public read-only" ON public.vga_deals;
-CREATE POLICY "Allow public read-only" 
-ON public.vga_deals FOR SELECT 
-USING (true);
+CREATE POLICY "Allow public read-only" ON public.vga_deals FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Allow service insert/update" ON public.vga_deals;
-CREATE POLICY "Allow service insert/update" 
-ON public.vga_deals FOR ALL 
-USING (true);
+CREATE POLICY "Allow service insert/update" ON public.vga_deals FOR ALL USING (true);
 
--- 5. Postgres View: Hitung Harga Pasar Median Otomatis di DB
--- Menggunakan security_invoker = on agar patuh terhadap RLS Supabase
+DROP POLICY IF EXISTS "Allow all on bot_commands" ON public.bot_commands;
+CREATE POLICY "Allow all on bot_commands" ON public.bot_commands FOR ALL USING (true);
+
+-- 5. Postgres View
 CREATE OR REPLACE VIEW public.vga_market_stats 
 WITH (security_invoker = on) AS
 SELECT 

@@ -324,16 +324,78 @@ async def run_sniper_round():
     print(f"    - ALERT CUAN TERKIRIM KE DISCORD: {new_alerts}")
     print("="*50)
 
+from datetime import datetime
+from sync_supabase import SUPABASE_URL, SUPABASE_SERVICE_KEY
+
+def get_remote_command() -> dict:
+    try:
+        req = urllib.request.Request(
+            f"{SUPABASE_URL}/rest/v1/bot_commands?id=eq.main&select=command,state",
+            headers={
+                "apikey": SUPABASE_SERVICE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"
+            }
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            if data:
+                return data[0]
+    except Exception:
+        pass
+    return {"command": "RESUME", "state": "IDLE"}
+
+def update_bot_state(state: str, reset_command: bool = False):
+    try:
+        payload = {"state": state, "last_ping": datetime.utcnow().isoformat() + "Z"}
+        if reset_command:
+            payload["command"] = "RESUME"
+        req = urllib.request.Request(
+            f"{SUPABASE_URL}/rest/v1/bot_commands?id=eq.main",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "apikey": SUPABASE_SERVICE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+                "Content-Type": "application/json"
+            },
+            method="PATCH"
+        )
+        urllib.request.urlopen(req, timeout=5)
+    except Exception:
+        pass
+
 async def main_loop(interval_minutes: int = 10):
-    print(f"[*] VGA Hunter standby mode loop aktif (Cek tiap {interval_minutes} menit)")
+    print(f"[*] VGA Hunter cloud-controlled loop aktif (Cek tiap {interval_minutes} menit / kendali web)")
     while True:
+        remote = get_remote_command()
+        cmd = remote.get("command", "RESUME")
+        
+        if cmd == "STOP":
+            print("[!] Menerima perintah STOP dari Web. Mematikan bot...")
+            update_bot_state("OFFLINE")
+            break
+            
+        if cmd == "PAUSE":
+            update_bot_state("PAUSED")
+            await asyncio.sleep(5)
+            continue
+            
+        update_bot_state("SCANNING", reset_command=(cmd == "SCAN_NOW"))
         try:
             await run_sniper_round()
         except Exception as e:
             print(f"[-] Round error: {e}")
+            
+        update_bot_state("IDLE")
         
-        print(f"\n[zzz] Tidur {interval_minutes} menit sebelum scan berikutnya...")
-        await asyncio.sleep(interval_minutes * 60)
+        # Sleep dengan respon instan jika ada perintah dari Web
+        total_seconds = interval_minutes * 60
+        elapsed = 0
+        while elapsed < total_seconds:
+            await asyncio.sleep(5)
+            elapsed += 5
+            check = get_remote_command()
+            if check.get("command") in ["SCAN_NOW", "PAUSE", "STOP"]:
+                break
 
 if __name__ == "__main__":
     if "--reset-db" in sys.argv:
