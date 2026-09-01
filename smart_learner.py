@@ -53,6 +53,10 @@ class SmartLearner:
             )
         """)
         
+        # Auto-Prune data > 60 hari agar storage tidak pernah bengkak (Maks < 5MB selamanya)
+        c.execute("DELETE FROM price_history WHERE created_at < datetime('now', '-60 days')")
+        c.execute("DELETE FROM deals WHERE seen_at < datetime('now', '-60 days')")
+        
         conn.commit()
         conn.close()
 
