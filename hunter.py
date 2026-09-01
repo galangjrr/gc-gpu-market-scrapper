@@ -8,6 +8,7 @@ from scraper import scrape_fb_marketplace
 from scraper_tokped import scrape_tokopedia_vga
 from scraper_toco import scrape_toco_vga
 from sync_supabase import sync_deals_to_supabase
+from smart_learner import learner
 
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1544396122817167523/Ior0SHvrYqGkuCpzU1zz0beB8YJGIzxFeeuHGvR67Hp0HqyCRLMBHT6npGmMWfldKxjK"
 
@@ -128,18 +129,33 @@ def evaluate_deal(title: str, price: int) -> tuple[bool, str, str]:
             if price < min_floor:
                 return False, "HARGA_CURIGA_MATOT", f"{model.upper()} harga Rp {price:,} terlalu murah (curiga matot)"
                 
+            # Cek apakah ada data pasar hasil pembelajaran dinamis
+            learned = learner.get_learned_market_stats(model)
+            if learned:
+                max_snipe = learned["smart_max_kulak"]
+                min_floor = learned["smart_min_floor"]
+            
+            # Harga Rp 0 / minta chat seller
+            if price == 0:
+                return True, "UNPRICED", f"Harga Rp 0 / Chat Seller ({model.upper()})", 50
+                
+            # Tolak jika harga di bawah lantai waras
+            if price < min_floor:
+                return False, "HARGA_CURIGA_RUSAK", f"{model.upper()} Rp {price:,} di bawah harga lantai (Curiga Rusak/Kanibal)", 0
+                
             # Lolos jika harga di bawah target kulak
             if price <= max_snipe:
-                return True, "STEAL_DEAL", f"Target {model.upper()} (Max Rp {max_snipe:,})"
+                smart_score = learner.compute_steal_score(title, price, model, max_snipe)
+                return True, "STEAL_DEAL", f"Target {model.upper()} (Max Rp {max_snipe:,})", smart_score
             else:
-                return False, "HARGA_KEMAHALAN", f"{model.upper()} Rp {price:,} di atas batas kulak Rp {max_snipe:,}"
+                return False, "HARGA_KEMAHALAN", f"{model.upper()} Rp {price:,} di atas batas kulak Rp {max_snipe:,}", 0
                 
-    return False, "BUKAN_MODEL_TARGET", "Bukan VGA incaran bisnis"
+    return False, "BUKAN_MODEL_TARGET", "Bukan VGA incaran bisnis", 0
 
-def send_discord_alert(deal: dict, deal_type: str = "STEAL_DEAL"):
+def send_discord_alert(deal: dict, deal_type: str = "STEAL_DEAL", smart_score: int = 80):
     is_unpriced = deal_type == "UNPRICED"
-    badge_discord = "⚠️ [TANYA HARGA / FREE]" if is_unpriced else "💎 [CUAN DEAL]"
-    badge_console = "[TANYA HARGA / FREE]" if is_unpriced else "[CUAN DEAL]"
+    badge_discord = "⚠️ [TANYA HARGA / FREE]" if is_unpriced else f"💎 [STEAL DEAL • SKOR AI {smart_score}/100]"
+    badge_console = "[TANYA HARGA / FREE]" if is_unpriced else f"[STEAL DEAL • SKOR {smart_score}/100]"
     color = 16776960 if is_unpriced else 3066993  # Hijau Toska
     
     source_name = deal["source"].upper().replace("_", " ")
@@ -157,11 +173,12 @@ def send_discord_alert(deal: dict, deal_type: str = "STEAL_DEAL"):
             "color": color,
             "fields": [
                 {"name": "💰 Harga Kulak", "value": f"**{deal['price_raw']}**", "inline": True},
+                {"name": "🎯 Skor Kelayakan AI", "value": f"**{smart_score}/100**", "inline": True},
                 {"name": "🏪 Platform", "value": f"`{source_name}`", "inline": True},
                 {"name": "📍 Lokasi", "value": deal.get("location", "-"), "inline": True},
                 {"name": "🔗 Link Listing", "value": f"[Klik Buka & Chat Seller]({deal['url']})", "inline": False},
             ],
-            "footer": {"text": "VGA Hunter • Hanya VGA Fast Moving & Berpotensi Cuan"}
+            "footer": {"text": "VGA Hunter • Self-Learning Market Intelligence"}
         }]
     }
 
@@ -225,13 +242,23 @@ async def run_sniper_round():
 
         save_deal(url, deal["title"], deal["price"], deal["source"])
 
-        should_alert, deal_type, reason = evaluate_deal(deal["title"], deal["price"])
+        should_alert, deal_type, reason, smart_score = evaluate_deal(deal["title"], deal["price"])
+        
+        # Rekam sampel data ke modul pembelajaran statistik (Self-Learning Memory)
+        model_matched = None
+        for m in FLIPPING_TARGETS:
+            if m in deal["title"].lower():
+                model_matched = m
+                break
+        if model_matched:
+            learner.record_deal_sample(model_matched, deal["price"], deal["source"], deal["title"], should_alert)
+
         if should_alert:
-            send_discord_alert(deal, deal_type=deal_type)
+            send_discord_alert(deal, deal_type=deal_type, smart_score=smart_score)
             new_alerts += 1
             await asyncio.sleep(0.4)
         else:
-            if "AMPAS" in deal_type or "DIBLOKIR" in deal_type:
+            if "AMPAS" in deal_type or "DIBLOKIR" in deal_type or "RUSAK" in deal_type:
                 junk_blocked_count += 1
             elif "KEMAHALAN" in deal_type:
                 overprice_count += 1
