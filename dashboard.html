@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VGA Hunter Pro • Tokopedia Control Center</title>
+  <title>VGA Hunter Pro • Clean Curated Edition</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,11 +21,16 @@
       box-shadow: 0 1px 4px rgba(141, 150, 170, 0.08);
       border-radius: 12px;
     }
+    .tab-btn.active {
+      background-color: #03AC0E;
+      color: #FFFFFF;
+      border-color: #03AC0E;
+    }
   </style>
 </head>
 <body class="min-h-screen">
   
-  <!-- TOP CONTROL HEADER WITH LIVE BOT STATUS -->
+  <!-- NAVBAR -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -35,23 +40,20 @@
         <div>
           <div class="font-extrabold text-base sm:text-lg text-slate-800 tracking-tight flex items-center gap-1.5">
             <span>VGA</span><span class="text-[#03AC0E]">Hunter</span>
-            <span class="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-[#03AC0E] rounded border border-emerald-200 ml-1">LIVE CONTROLLER</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-[#03AC0E] rounded border border-emerald-200 ml-1">CLEAN CURATED</span>
           </div>
-          <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Pemantau Tokopedia • FB Marketplace • Toco.id</p>
+          <p class="text-[11px] text-slate-500 font-medium hidden sm:block">100% Bebas Sampah Kanibalan / Matot / Aksesoris</p>
         </div>
       </div>
       
-      <!-- BOT STATUS CONTROLLER -->
       <div class="flex items-center gap-2 sm:gap-4">
-        <!-- Live Status Pill -->
         <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold" id="botStatusPill">
           <span class="w-2.5 h-2.5 rounded-full bg-slate-400" id="botStatusDot"></span>
-          <span class="text-slate-700" id="botStatusText">Menghubungkan ke Server...</span>
+          <span class="text-slate-700" id="botStatusText">Menghubungkan...</span>
           <span class="text-slate-400 font-mono text-[11px] border-l border-slate-300 pl-2 hidden md:inline" id="botCountdown">--:--</span>
         </div>
 
-        <!-- Trigger Scan Button -->
-        <button onclick="triggerBotScan()" id="btnTriggerScan" class="px-3.5 py-1.5 bg-[#03AC0E] hover:bg-[#028A0B] text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+        <button onclick="triggerBotScan()" id="btnTriggerScan" class="px-3.5 py-1.5 bg-[#03AC0E] hover:bg-[#028A0B] text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-sm">
           <i class="fa-solid fa-bolt" id="btnIcon"></i>
           <span id="btnText">Scan Sekarang</span>
         </button>
@@ -61,56 +63,47 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- LIVE BOT ACTIVITY BANNER -->
-    <div id="botActivityBanner" class="hidden card-tokped p-4 border-l-4 border-l-amber-500 bg-amber-50/50 flex items-center justify-between text-xs text-amber-900 font-medium">
-      <div class="flex items-center gap-2">
-        <i class="fa-solid fa-spinner fa-spin text-amber-600 text-sm"></i>
-        <span id="botActivityText">Bot sedang memindai Tokopedia, Facebook Marketplace, dan Toco.id...</span>
-      </div>
-      <span class="font-mono text-[11px] text-amber-700 font-bold">Scanning in Progress</span>
-    </div>
-
     <!-- KPI STATS -->
     <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="card-tokped p-4">
-        <div class="text-xs font-semibold text-slate-500">Total Unit Terpantau</div>
+        <div class="text-xs font-semibold text-slate-500">Unit Normal Terverifikasi</div>
         <div class="text-2xl sm:text-3xl font-extrabold mt-1 text-slate-800" id="stat-total">0</div>
-        <div class="text-xs text-[#03AC0E] font-semibold mt-1">Multi-Marketplace</div>
+        <div class="text-xs text-[#03AC0E] font-semibold mt-1">Bebas Part Kanibal</div>
       </div>
       <div class="card-tokped p-4">
-        <div class="text-xs font-semibold text-slate-500">Database Seri Terdaftar</div>
-        <div class="text-2xl sm:text-3xl font-extrabold mt-1 text-blue-600">45+ Seri</div>
-        <div class="text-xs text-slate-500 mt-1">RTX / GTX / RX / Arc</div>
+        <div class="text-xs font-semibold text-slate-500">Peluang Cuan (Steal Deals)</div>
+        <div class="text-2xl sm:text-3xl font-extrabold mt-1 text-[#03AC0E]" id="stat-steal">0 Unit</div>
+        <div class="text-xs text-emerald-600 font-semibold mt-1">Di Bawah Batas Kulak</div>
       </div>
       <div class="card-tokped p-4">
-        <div class="text-xs font-semibold text-slate-500">Filter Fan Configuration</div>
-        <div class="text-xl sm:text-2xl font-extrabold mt-1 text-purple-600">3 / 2 / 1 Fan</div>
-        <div class="text-xs text-slate-500 mt-1">Auto-Detect Cooler</div>
+        <div class="text-xs font-semibold text-slate-500">Filter Sampah Aktif</div>
+        <div class="text-xl sm:text-2xl font-extrabold mt-1 text-blue-600">Auto-Filtered</div>
+        <div class="text-xs text-slate-500 mt-1">Matot / Box / Kabel Dibuang</div>
       </div>
       <div class="card-tokped p-4">
-        <div class="text-xs font-semibold text-slate-500">Status Server Local</div>
-        <div class="text-xl sm:text-2xl font-extrabold mt-1 text-[#03AC0E]" id="stat-server">Online</div>
-        <div class="text-xs text-slate-500 mt-1">Port 5000 (Standby)</div>
+        <div class="text-xs font-semibold text-slate-500">Potensi Margin Tertinggi</div>
+        <div class="text-xl sm:text-2xl font-extrabold mt-1 text-orange-600" id="stat-max-margin">+Rp 0</div>
+        <div class="text-xs text-slate-500 mt-1">Spread Arbitrase Bersih</div>
       </div>
     </section>
 
-    <!-- DECISION CALCULATOR WITH COOLER FACTOR -->
+    <!-- DECISION CALCULATOR -->
     <section class="card-tokped p-6 border-l-4 border-l-[#03AC0E]">
       <div class="flex items-center gap-2 mb-2">
         <span class="p-1.5 bg-emerald-50 text-[#03AC0E] rounded-md text-sm"><i class="fa-solid fa-calculator"></i></span>
-        <h2 class="text-base font-extrabold text-slate-800">Kalkulator Cek Kelayakan Beli (Lengkap 45+ Seri &amp; Tipe Fan)</h2>
+        <h2 class="text-base font-extrabold text-slate-800">Kalkulator Cek Kelayakan Beli</h2>
       </div>
-      <p class="text-xs text-slate-500 mb-5">Pilih model VGA, brand tier, dan tipe fan untuk hitungan kelayakan harga beli yang presisi.</p>
+      <p class="text-xs text-slate-500 mb-5">Pilih model VGA dan tipe fan untuk hitungan batas aman kulak &amp; estimasi profit.</p>
 
       <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
         <div class="md:col-span-4">
-          <label class="block text-xs font-bold text-slate-600 mb-1">Model VGA (Lengkap 45+ Pilihan)</label>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Model VGA</label>
           <select id="calcModel" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
             <!-- Populated via JS -->
           </select>
         </div>
         <div class="md:col-span-3">
-          <label class="block text-xs font-bold text-slate-600 mb-1">Tipe Fan / Cooler</label>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Tipe Fan</label>
           <select id="calcFan" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
             <option value="triple">Triple Fan (+8% Valuasi)</option>
             <option value="dual" selected>Dual Fan (Standard)</option>
@@ -128,22 +121,17 @@
         </div>
       </div>
 
-      <!-- RESULT BOX -->
-      <div id="calcResult" class="hidden mt-4 p-4 rounded-xl text-sm transition">
-        <!-- Injected via JS -->
-      </div>
+      <div id="calcResult" class="hidden mt-4 p-4 rounded-xl text-sm transition"></div>
     </section>
 
     <!-- BENCHMARK TABLE & CHART -->
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      
-      <!-- Table Matrix -->
       <div class="lg:col-span-7 card-tokped p-5 flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
             <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
               <i class="fa-solid fa-table-list text-[#03AC0E]"></i>
-              <span>Daftar Harga Pasar &amp; Batas Kulak (All Series)</span>
+              <span>Batas Harga Kulak &amp; Estimasi Cuan</span>
             </h3>
             <input type="text" id="tableFilter" placeholder="Cari seri..." class="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded text-xs text-slate-700">
           </div>
@@ -165,7 +153,6 @@
         </div>
       </div>
 
-      <!-- Chart -->
       <div class="lg:col-span-5 card-tokped p-5 flex flex-col justify-between">
         <div class="flex items-center justify-between mb-2 pb-3 border-b border-slate-100">
           <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
@@ -177,43 +164,54 @@
           <canvas id="marketChart"></canvas>
         </div>
       </div>
-
     </section>
 
-    <!-- ACTIVE LISTINGS FEED WITH ADVANCED SPEC FILTERS -->
+    <!-- CLEAN CURATED LISTINGS FEED -->
     <section class="card-tokped p-6 space-y-4">
       <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 pb-3 border-b border-slate-100">
         <div>
-          <h3 class="text-base font-extrabold text-slate-800">Katalog Listing VGA Terpantau</h3>
-          <p class="text-xs text-slate-500">Filter berdasarkan Brand, Tipe Fan (3/2/1 Fan), dan Platform</p>
+          <h3 class="text-base font-extrabold text-slate-800">Katalog Listing VGA Normal (Tersaring)</h3>
+          <p class="text-xs text-slate-500">Unit cacat/kanibal dibersihkan. Steal deal diprioritaskan di baris pertama.</p>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <input type="text" id="searchInput" placeholder="Cari nama/kota..." class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none">
-          <select id="fanFilter" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none">
-            <option value="ALL">Semua Tipe Fan</option>
-            <option value="Triple Fan">Triple Fan (3 Fan)</option>
-            <option value="Dual Fan">Dual Fan (2 Fan)</option>
-            <option value="Single Fan">Single Fan / ITX</option>
-          </select>
-          <select id="brandFilter" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none">
-            <option value="ALL">Semua Brand</option>
-            <option value="ASUS">ASUS / ROG / TUF</option>
-            <option value="MSI">MSI</option>
-            <option value="GIGABYTE">GIGABYTE / AORUS</option>
-            <option value="SAPPHIRE">SAPPHIRE</option>
-            <option value="COLORFUL">COLORFUL</option>
-            <option value="ZOTAC">ZOTAC</option>
-            <option value="GALAX">GALAX</option>
-            <option value="PALIT">PALIT</option>
-            <option value="POWERCOLOR">POWERCOLOR</option>
-          </select>
-          <select id="platformFilter" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none">
-            <option value="ALL">Semua Platform</option>
-            <option value="Tokopedia">Tokopedia</option>
-            <option value="Facebook">Facebook</option>
-            <option value="Toco">Toco</option>
-          </select>
+
+        <!-- QUICK TAB FILTERS -->
+        <div class="flex items-center gap-2">
+          <button onclick="setTab('STEAL')" id="tabSteal" class="tab-btn px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-fire text-amber-500"></i> Hanya Steal Deals
+          </button>
+          <button onclick="setTab('ALL')" id="tabAll" class="tab-btn active px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 flex items-center gap-1.5 transition">
+            Semua VGA Normal
+          </button>
         </div>
+      </div>
+
+      <!-- FILTER CONTROLS -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <input type="text" id="searchInput" placeholder="Cari nama/kota/brand..." class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none">
+        <select id="fanFilter" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none">
+          <option value="ALL">Semua Tipe Fan</option>
+          <option value="Triple Fan">Triple Fan (3 Fan)</option>
+          <option value="Dual Fan">Dual Fan (2 Fan)</option>
+          <option value="Single Fan">Single Fan / ITX</option>
+        </select>
+        <select id="brandFilter" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none">
+          <option value="ALL">Semua Brand</option>
+          <option value="ASUS">ASUS / ROG / TUF</option>
+          <option value="MSI">MSI</option>
+          <option value="GIGABYTE">GIGABYTE / AORUS</option>
+          <option value="SAPPHIRE">SAPPHIRE</option>
+          <option value="COLORFUL">COLORFUL</option>
+          <option value="ZOTAC">ZOTAC</option>
+          <option value="GALAX">GALAX</option>
+          <option value="PALIT">PALIT</option>
+          <option value="POWERCOLOR">POWERCOLOR</option>
+        </select>
+        <select id="platformFilter" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 font-semibold focus:outline-none">
+          <option value="ALL">Semua Platform</option>
+          <option value="Tokopedia">Tokopedia</option>
+          <option value="Facebook">Facebook</option>
+          <option value="Toco">Toco</option>
+        </select>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="listingsGrid">
@@ -224,11 +222,20 @@
   </main>
 
   <script>
-    const dealsData = [{"title": "Tanpa Judul", "price_raw": "Marketplace", "price": 0, "location": "-", "url": "https://www.facebook.com/marketplace/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "-"}, {"title": "Tanpa Judul", "price_raw": "Jual barang", "price": 0, "location": "-", "url": "https://www.facebook.com/marketplace/create/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "-"}, {"title": "Tanpa Judul", "price_raw": "Kendaraan", "price": 0, "location": "-", "url": "https://www.facebook.com/marketplace/jakarta/search/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "-"}, {"title": "Tanpa Judul", "price_raw": "Sewa Properti", "price": 0, "location": "-", "url": "https://www.facebook.com/marketplace/jakarta/propertyrentals/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "-"}, {"title": "Tanpa Judul", "price_raw": "Barang Gratis", "price": 0, "location": "-", "url": "https://www.facebook.com/marketplace/jakarta/free/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "-"}, {"title": "Tanpa Judul", "price_raw": "Kategori lainnya", "price": 0, "location": "-", "url": "https://www.facebook.com/marketplace/categories/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "-"}, {"title": "Biostar RX 550 4GB DDR5", "price_raw": "Rp800.000", "price": 800000, "location": "Jakarta, Indonesia", "url": "https://www.facebook.com/marketplace/item/957787364032573/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "BIOSTAR", "fan_type": "Dual Fan (2 Fan)", "vram": "4GB"}, {"title": "Sapphire RX550 4GB Non Pin", "price_raw": "Rp990.000", "price": 990000, "location": "Bekasi", "url": "https://www.facebook.com/marketplace/item/2261235331082328/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "SAPPHIRE", "fan_type": "Dual Fan (2 Fan)", "vram": "4GB"}, {"title": "RX 580 4GB", "price_raw": "Rp1.200.000", "price": 1200000, "location": "Ciranggon, Jawa Barat, Indonesia", "url": "https://www.facebook.com/marketplace/item/1778521656482016/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "4GB"}, {"title": "RX 580 Pulse 4GB", "price_raw": "Rp1.250.000", "price": 1250000, "location": "Jakarta, Indonesia", "url": "https://www.facebook.com/marketplace/item/1936494270354910/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "4GB"}, {"title": "RX 78F00 Gundam & G-Doc", "price_raw": "Rp1.450.000", "price": 1450000, "location": "Jakarta, Indonesia", "url": "https://www.facebook.com/marketplace/item/1687328472356564/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "-"}, {"title": "RX 6700XT NO DISPLAY", "price_raw": "Rp1.700.000", "price": 1700000, "location": "Cibinong, Bogor", "url": "https://www.facebook.com/marketplace/item/1595021795648784/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "-"}, {"title": "Jual RX 570 4gb", "price_raw": "Rp2.000.000", "price": 2000000, "location": "Jakarta, Indonesia", "url": "https://www.facebook.com/marketplace/item/947653870998765/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "4GB"}, {"title": "RX 6600 8GB", "price_raw": "Rp2.300.000", "price": 2300000, "location": "Bekasi", "url": "https://www.facebook.com/marketplace/item/1682297919531399/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "Vga asus dual rx 7600", "price_raw": "Rp4.500.000", "price": 4500000, "location": "Kabupaten Cianjur", "url": "https://www.facebook.com/marketplace/item/2141432806747719/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "ASUS", "fan_type": "Dual Fan (2 Fan)", "vram": "-"}, {"title": "XFX Radeon RX 7600 SPEEDSTER SWFT 210 8GB GDDR6 RDNA 3 - 1 Year Warranty VGA RX7600 DDR6 Graphic Card", "price_raw": "Rp4.940.100", "price": 4940100, "location": "Kota Malang", "condition": "Bekas/C2C", "url": "https://toco.id/listing/xfx-radeon-rx-7600-speedster-swft-210-8gb-gddr6-rdna-3-1-year-warranty-vga-rx7600-ddr6-graphic-card-1787295496025-cf31", "source": "toco", "platform": "Toco", "brand": "XFX", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "XFX Radeon RX 7600 SPEEDSTER SWFT 210 8GB GDDR6 RDNA 3 - 1 Year Warranty VGA RX7600 DDR6 Graphic Card", "price_raw": "Rp4.940.100", "price": 4940100, "location": "Kota Surabaya", "condition": "Bekas/C2C", "url": "https://toco.id/listing/xfx-radeon-rx-7600-speedster-swft-210-8gb-gddr6-rdna-3-1-year-warranty-vga-rx7600-ddr6-graphic-card-1787295494354-ef46", "source": "toco", "platform": "Toco", "brand": "XFX", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "XFX Radeon RX 7600 SPEEDSTER SWFT 210 8GB GDDR6 RDNA 3 - 1 Year Warranty VGA RX7600 DDR6 Graphic Card", "price_raw": "Rp4.940.100", "price": 4940100, "location": "Kota Malang", "condition": "Bekas/C2C", "url": "https://toco.id/listing/xfx-radeon-rx-7600-speedster-swft-210-8gb-gddr6-rdna-3-1-year-warranty-vga-rx7600-ddr6-graphic-card-1787295496771-5684", "source": "toco", "platform": "Toco", "brand": "XFX", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "XFX Radeon RX 7600 SPEEDSTER SWFT 210 8GB GDDR6 RDNA 3 - 1 Year Warranty VGA RX7600 DDR6 Graphic Card", "price_raw": "Rp4.940.100", "price": 4940100, "location": "Kota Surabaya", "condition": "Bekas/C2C", "url": "https://toco.id/listing/xfx-radeon-rx-7600-speedster-swft-210-8gb-gddr6-rdna-3-1-year-warranty-vga-rx7600-ddr6-graphic-card-1787295494933-6114", "source": "toco", "platform": "Toco", "brand": "XFX", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "XFX Radeon RX 7600 SPEEDSTER SWFT 210 8GB GDDR6 RDNA 3 - 1 Year Warranty VGA RX7600 DDR6 Graphic Card", "price_raw": "Rp4.940.100", "price": 4940100, "location": "Kota Malang", "condition": "Bekas/C2C", "url": "https://toco.id/listing/xfx-radeon-rx-7600-speedster-swft-210-8gb-gddr6-rdna-3-1-year-warranty-vga-rx7600-ddr6-graphic-card-1787295495405-cad4", "source": "toco", "platform": "Toco", "brand": "XFX", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "XFX Radeon RX 7600 SPEEDSTER SWFT 210 8GB GDDR6 RDNA 3 - 1 Year Warranty VGA RX7600 DDR6 Graphic Card", "price_raw": "Rp4.940.100", "price": 4940100, "location": "Kota Malang", "condition": "Bekas/C2C", "url": "https://toco.id/listing/xfx-radeon-rx-7600-speedster-swft-210-8gb-gddr6-rdna-3-1-year-warranty-vga-rx7600-ddr6-graphic-card-1787295497731-6ce8", "source": "toco", "platform": "Toco", "brand": "XFX", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "XFX Radeon RX 7600 SPEEDSTER SWFT 210 8GB GDDR6 RDNA 3 - 1 Year Warranty VGA RX7600 DDR6 Graphic Card", "price_raw": "Rp4.940.100", "price": 4940100, "location": "Kota Malang", "condition": "Bekas/C2C", "url": "https://toco.id/listing/xfx-radeon-rx-7600-speedster-swft-210-8gb-gddr6-rdna-3-1-year-warranty-vga-rx7600-ddr6-graphic-card-1787295498862-3848", "source": "toco", "platform": "Toco", "brand": "XFX", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "Asus Dual Evo AMD Radeon RX 7600 8GB", "price_raw": "Rp4.355.010", "price": 4355010, "location": "Kota Tangerang Selatan", "condition": "Bekas/C2C", "url": "https://toco.id/listing/asus-dual-evo-amd-radeon-rx-7600-8gb-1783502370723-9e5f", "source": "toco", "platform": "Toco", "brand": "ASUS", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "VGA ASUS DUAL RX 7600 8GB EVO OC", "price_raw": "Rp4.617.000", "price": 4617000, "location": "Kota Denpasar", "condition": "Bekas/C2C", "url": "https://toco.id/listing/vga-asus-dual-rx-7600-8gb-evo-oc-1762245978415-845a", "source": "toco", "platform": "Toco", "brand": "ASUS", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "VGA AMD ASUS RX 7600 8gb fullset garansi resmi panjang", "price_raw": "Rp4.882.500", "price": 4882500, "location": "Kota Semarang", "condition": "Bekas/C2C", "url": "https://toco.id/listing/vga-amd-asus-rx-7600-8gb-fullset-garansi-resmi-panjang-1786256634193-80ce", "source": "toco", "platform": "Toco", "brand": "ASUS", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "Asrock Radeon RX 7600 CHALLENGER D 8GB OC GDDR6 RDNA 3 - RX7600 DDR6", "price_raw": "Rp4.742.100", "price": 4742100, "location": "Kota Malang", "condition": "Bekas/C2C", "url": "https://toco.id/listing/asrock-radeon-rx-7600-challenger-d-8gb-oc-gddr6-rdna-3-rx7600-ddr6", "source": "toco", "platform": "Toco", "brand": "ASROCK", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "rc 701 + cleat rs500", "price_raw": "Rp1.500.000", "price": 1500000, "location": "Kota Banjarbaru", "condition": "Bekas/C2C", "url": "https://toco.id/listing/rc-701-cleat-rs500-1788240530781-e381", "source": "toco", "platform": "Toco", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "-"}, {"title": "VGA RX 6600 8GB ASROCK CHALLENGER GDDR6", "price_raw": "Rp3.000.000", "price": 3000000, "location": "Kabupaten Gresik", "condition": "Bekas/C2C", "url": "https://toco.id/listing/vga-rx-6600-8gb-asrock-challenger-gddr6-1788220653080-e221", "source": "toco", "platform": "Toco", "brand": "ASROCK", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}, {"title": "【Anchi】Sepeda Gunung AT 26\" 760 21S & AT 27,5\" 69CR / 730 21S / AT-MT 26\" 24S / FOSTER 27.5 629 RX / SUMAX 26\" Outdoor", "price_raw": "Rp1.559.400", "price": 1559400, "location": "Indonesia", "condition": "Bekas/C2C", "url": "https://toco.id/listing/anchisepeda-gunung-at-26-760-21s-at-275-69cr-730-21s-at-mt-26-24s-foster-275-629-rx-sumax-26-outdoor", "source": "toco", "platform": "Toco", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "-"}, {"title": "vga amd radeon rx 6600 challenger 8gb", "price_raw": "Rp2.900.000", "price": 2900000, "location": "Kota Cilegon", "condition": "Bekas/C2C", "url": "https://toco.id/listing/vga-amd-radeon-rx-6600-8gb-1786942983411-7471", "source": "toco", "platform": "Toco", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "vram": "8GB"}];
-    const matrixData = {"RX 7600": {"model": "RX 7600", "samples": 12, "median": 4940100, "min_price": 4355010, "max_price": 4940100, "max_kulak": 4149684, "cuan": 790416}, "RX 6600": {"model": "RX 6600", "samples": 3, "median": 2900000, "min_price": 2300000, "max_price": 3000000, "max_kulak": 2436000, "cuan": 464000}, "RX 580": {"model": "RX 580", "samples": 2, "median": 1225000, "min_price": 1200000, "max_price": 1250000, "max_kulak": 1029000, "cuan": 196000}, "RTX 4090": {"model": "RTX 4090", "samples": 0, "median": 28000000, "min_price": 21000000, "max_price": 32199999, "max_kulak": 23520000, "cuan": 4480000}, "RTX 4080 SUPER": {"model": "RTX 4080 SUPER", "samples": 0, "median": 16500000, "min_price": 12375000, "max_price": 18975000, "max_kulak": 13860000, "cuan": 2640000}, "RTX 4080": {"model": "RTX 4080", "samples": 0, "median": 15000000, "min_price": 11250000, "max_price": 17250000, "max_kulak": 12600000, "cuan": 2400000}, "RTX 4070 TI SUPER": {"model": "RTX 4070 TI SUPER", "samples": 0, "median": 13500000, "min_price": 10125000, "max_price": 15524999, "max_kulak": 11340000, "cuan": 2160000}, "RTX 4070 TI": {"model": "RTX 4070 TI", "samples": 0, "median": 11000000, "min_price": 8250000, "max_price": 12649999, "max_kulak": 9240000, "cuan": 1760000}, "RTX 4070 SUPER": {"model": "RTX 4070 SUPER", "samples": 0, "median": 9500000, "min_price": 7125000, "max_price": 10925000, "max_kulak": 7980000, "cuan": 1520000}, "RTX 4070": {"model": "RTX 4070", "samples": 0, "median": 8500000, "min_price": 6375000, "max_price": 9775000, "max_kulak": 7140000, "cuan": 1360000}, "RTX 4060 TI": {"model": "RTX 4060 TI", "samples": 0, "median": 5500000, "min_price": 4125000, "max_price": 6324999, "max_kulak": 4620000, "cuan": 880000}, "RTX 4060": {"model": "RTX 4060", "samples": 0, "median": 4300000, "min_price": 3225000, "max_price": 4945000, "max_kulak": 3612000, "cuan": 688000}, "RTX 3090": {"model": "RTX 3090", "samples": 0, "median": 11500000, "min_price": 8625000, "max_price": 13224999, "max_kulak": 9660000, "cuan": 1840000}, "RTX 3080 TI": {"model": "RTX 3080 TI", "samples": 0, "median": 8500000, "min_price": 6375000, "max_price": 9775000, "max_kulak": 7140000, "cuan": 1360000}, "RTX 3080": {"model": "RTX 3080", "samples": 0, "median": 7200000, "min_price": 5400000, "max_price": 8279999, "max_kulak": 6048000, "cuan": 1152000}, "RTX 3070 TI": {"model": "RTX 3070 TI", "samples": 0, "median": 5200000, "min_price": 3900000, "max_price": 5980000, "max_kulak": 4368000, "cuan": 832000}, "RTX 3070": {"model": "RTX 3070", "samples": 0, "median": 4300000, "min_price": 3225000, "max_price": 4945000, "max_kulak": 3612000, "cuan": 688000}, "RTX 3060 TI": {"model": "RTX 3060 TI", "samples": 0, "median": 3800000, "min_price": 2850000, "max_price": 4370000, "max_kulak": 3192000, "cuan": 608000}, "RTX 3060": {"model": "RTX 3060", "samples": 0, "median": 3400000, "min_price": 2550000, "max_price": 3909999, "max_kulak": 2856000, "cuan": 544000}, "RTX 3050": {"model": "RTX 3050", "samples": 0, "median": 2300000, "min_price": 1725000, "max_price": 2645000, "max_kulak": 1932000, "cuan": 368000}, "RTX 2080 TI": {"model": "RTX 2080 TI", "samples": 0, "median": 4500000, "min_price": 3375000, "max_price": 5175000, "max_kulak": 3780000, "cuan": 720000}, "RTX 2080 SUPER": {"model": "RTX 2080 SUPER", "samples": 0, "median": 3600000, "min_price": 2700000, "max_price": 4139999, "max_kulak": 3024000, "cuan": 576000}, "RTX 2080": {"model": "RTX 2080", "samples": 0, "median": 3200000, "min_price": 2400000, "max_price": 3679999, "max_kulak": 2688000, "cuan": 512000}, "RTX 2070 SUPER": {"model": "RTX 2070 SUPER", "samples": 0, "median": 2900000, "min_price": 2175000, "max_price": 3334999, "max_kulak": 2436000, "cuan": 464000}, "RTX 2070": {"model": "RTX 2070", "samples": 0, "median": 2600000, "min_price": 1950000, "max_price": 2990000, "max_kulak": 2184000, "cuan": 416000}, "RTX 2060 SUPER": {"model": "RTX 2060 SUPER", "samples": 0, "median": 2400000, "min_price": 1800000, "max_price": 2760000, "max_kulak": 2016000, "cuan": 384000}, "RTX 2060": {"model": "RTX 2060", "samples": 0, "median": 2100000, "min_price": 1575000, "max_price": 2415000, "max_kulak": 1764000, "cuan": 336000}, "GTX 1660 SUPER": {"model": "GTX 1660 SUPER", "samples": 0, "median": 1650000, "min_price": 1237500, "max_price": 1897499, "max_kulak": 1386000, "cuan": 264000}, "GTX 1660 TI": {"model": "GTX 1660 TI", "samples": 0, "median": 1700000, "min_price": 1275000, "max_price": 1954999, "max_kulak": 1428000, "cuan": 272000}, "GTX 1660": {"model": "GTX 1660", "samples": 0, "median": 1450000, "min_price": 1087500, "max_price": 1667499, "max_kulak": 1218000, "cuan": 232000}, "GTX 1650 SUPER": {"model": "GTX 1650 SUPER", "samples": 0, "median": 1350000, "min_price": 1012500, "max_price": 1552499, "max_kulak": 1134000, "cuan": 216000}, "GTX 1650": {"model": "GTX 1650", "samples": 0, "median": 1150000, "min_price": 862500, "max_price": 1322500, "max_kulak": 966000, "cuan": 184000}, "GTX 1080 TI": {"model": "GTX 1080 TI", "samples": 0, "median": 2800000, "min_price": 2100000, "max_price": 3219999, "max_kulak": 2352000, "cuan": 448000}, "GTX 1070 TI": {"model": "GTX 1070 TI", "samples": 0, "median": 1800000, "min_price": 1350000, "max_price": 2069999, "max_kulak": 1512000, "cuan": 288000}, "GTX 1070": {"model": "GTX 1070", "samples": 0, "median": 1550000, "min_price": 1162500, "max_price": 1782499, "max_kulak": 1302000, "cuan": 248000}, "GTX 1060": {"model": "GTX 1060", "samples": 0, "median": 1250000, "min_price": 937500, "max_price": 1437500, "max_kulak": 1050000, "cuan": 200000}, "RX 7900 XTX": {"model": "RX 7900 XTX", "samples": 0, "median": 15000000, "min_price": 11250000, "max_price": 17250000, "max_kulak": 12600000, "cuan": 2400000}, "RX 7900 XT": {"model": "RX 7900 XT", "samples": 0, "median": 12500000, "min_price": 9375000, "max_price": 14374999, "max_kulak": 10500000, "cuan": 2000000}, "RX 7800 XT": {"model": "RX 7800 XT", "samples": 0, "median": 8200000, "min_price": 6150000, "max_price": 9430000, "max_kulak": 6888000, "cuan": 1312000}, "RX 7700 XT": {"model": "RX 7700 XT", "samples": 0, "median": 6800000, "min_price": 5100000, "max_price": 7819999, "max_kulak": 5712000, "cuan": 1088000}, "RX 7600 XT": {"model": "RX 7600 XT", "samples": 0, "median": 5200000, "min_price": 3900000, "max_price": 5980000, "max_kulak": 4368000, "cuan": 832000}, "RX 6900 XT": {"model": "RX 6900 XT", "samples": 0, "median": 8000000, "min_price": 6000000, "max_price": 9200000, "max_kulak": 6720000, "cuan": 1280000}, "RX 6800 XT": {"model": "RX 6800 XT", "samples": 0, "median": 6500000, "min_price": 4875000, "max_price": 7474999, "max_kulak": 5460000, "cuan": 1040000}, "RX 6800": {"model": "RX 6800", "samples": 0, "median": 5500000, "min_price": 4125000, "max_price": 6324999, "max_kulak": 4620000, "cuan": 880000}, "RX 6700 XT": {"model": "RX 6700 XT", "samples": 0, "median": 3800000, "min_price": 2850000, "max_price": 4370000, "max_kulak": 3192000, "cuan": 608000}, "RX 6650 XT": {"model": "RX 6650 XT", "samples": 0, "median": 3200000, "min_price": 2400000, "max_price": 3679999, "max_kulak": 2688000, "cuan": 512000}, "RX 6600 XT": {"model": "RX 6600 XT", "samples": 0, "median": 2800000, "min_price": 2100000, "max_price": 3219999, "max_kulak": 2352000, "cuan": 448000}, "RX 5700 XT": {"model": "RX 5700 XT", "samples": 0, "median": 2200000, "min_price": 1650000, "max_price": 2530000, "max_kulak": 1848000, "cuan": 352000}, "RX 5600 XT": {"model": "RX 5600 XT", "samples": 0, "median": 1750000, "min_price": 1312500, "max_price": 2012499, "max_kulak": 1470000, "cuan": 280000}, "ARC A770": {"model": "ARC A770", "samples": 0, "median": 4500000, "min_price": 3375000, "max_price": 5175000, "max_kulak": 3780000, "cuan": 720000}, "ARC A750": {"model": "ARC A750", "samples": 0, "median": 3400000, "min_price": 2550000, "max_price": 3909999, "max_kulak": 2856000, "cuan": 544000}, "ARC A580": {"model": "ARC A580", "samples": 0, "median": 2700000, "min_price": 2025000, "max_price": 3104999, "max_kulak": 2268000, "cuan": 432000}, "ARC B580": {"model": "ARC B580", "samples": 0, "median": 4200000, "min_price": 3150000, "max_price": 4830000, "max_kulak": 3528000, "cuan": 672000}};
+    const dealsData = [{"title": "RX 6600 8GB", "price_raw": "Rp2.300.000", "price": 2300000, "location": "Bekasi", "url": "https://www.facebook.com/marketplace/item/1682297919531399/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "model_tag": "RX 6600", "vram": "8GB", "is_steal_deal": true, "margin_est": 600000, "market_median": 2900000}, {"title": "Asus Dual Evo AMD Radeon RX 7600 8GB", "price_raw": "Rp4.355.010", "price": 4355010, "location": "Kota Tangerang Selatan", "condition": "Bekas/C2C", "url": "https://toco.id/listing/asus-dual-evo-amd-radeon-rx-7600-8gb-1783502370723-9e5f", "source": "toco", "platform": "Toco", "brand": "ASUS", "fan_type": "Dual Fan (2 Fan)", "model_tag": "RX 7600", "vram": "8GB", "is_steal_deal": false, "margin_est": 324540, "market_median": 4679550}, {"title": "Vga asus dual rx 7600", "price_raw": "Rp4.500.000", "price": 4500000, "location": "Kabupaten Cianjur", "url": "https://www.facebook.com/marketplace/item/2141432806747719/", "source": "facebook_marketplace", "platform": "Facebook", "brand": "ASUS", "fan_type": "Dual Fan (2 Fan)", "model_tag": "RX 7600", "vram": "-", "is_steal_deal": false, "margin_est": 179550, "market_median": 4679550}, {"title": "VGA ASUS DUAL RX 7600 8GB EVO OC", "price_raw": "Rp4.617.000", "price": 4617000, "location": "Kota Denpasar", "condition": "Bekas/C2C", "url": "https://toco.id/listing/vga-asus-dual-rx-7600-8gb-evo-oc-1762245978415-845a", "source": "toco", "platform": "Toco", "brand": "ASUS", "fan_type": "Dual Fan (2 Fan)", "model_tag": "RX 7600", "vram": "8GB", "is_steal_deal": false, "margin_est": 62550, "market_median": 4679550}, {"title": "vga amd radeon rx 6600 challenger 8gb", "price_raw": "Rp2.900.000", "price": 2900000, "location": "Kota Cilegon", "condition": "Bekas/C2C", "url": "https://toco.id/listing/vga-amd-radeon-rx-6600-8gb-1786942983411-7471", "source": "toco", "platform": "Toco", "brand": "OEM / Custom", "fan_type": "Dual Fan (2 Fan)", "model_tag": "RX 6600", "vram": "8GB", "is_steal_deal": false, "margin_est": 0, "market_median": 2900000}, {"title": "Asrock Radeon RX 7600 CHALLENGER D 8GB OC GDDR6 RDNA 3 - RX7600 DDR6", "price_raw": "Rp4.742.100", "price": 4742100, "location": "Kota Malang", "condition": "Bekas/C2C", "url": "https://toco.id/listing/asrock-radeon-rx-7600-challenger-d-8gb-oc-gddr6-rdna-3-rx7600-ddr6", "source": "toco", "platform": "Toco", "brand": "ASROCK", "fan_type": "Dual Fan (2 Fan)", "model_tag": "RX 7600", "vram": "8GB", "is_steal_deal": false, "margin_est": -62550, "market_median": 4679550}, {"title": "VGA RX 6600 8GB ASROCK CHALLENGER GDDR6", "price_raw": "Rp3.000.000", "price": 3000000, "location": "Kabupaten Gresik", "condition": "Bekas/C2C", "url": "https://toco.id/listing/vga-rx-6600-8gb-asrock-challenger-gddr6-1788220653080-e221", "source": "toco", "platform": "Toco", "brand": "ASROCK", "fan_type": "Dual Fan (2 Fan)", "model_tag": "RX 6600", "vram": "8GB", "is_steal_deal": false, "margin_est": -100000, "market_median": 2900000}, {"title": "VGA AMD ASUS RX 7600 8gb fullset garansi resmi panjang", "price_raw": "Rp4.882.500", "price": 4882500, "location": "Kota Semarang", "condition": "Bekas/C2C", "url": "https://toco.id/listing/vga-amd-asus-rx-7600-8gb-fullset-garansi-resmi-panjang-1786256634193-80ce", "source": "toco", "platform": "Toco", "brand": "ASUS", "fan_type": "Dual Fan (2 Fan)", "model_tag": "RX 7600", "vram": "8GB", "is_steal_deal": false, "margin_est": -202950, "market_median": 4679550}, {"title": "XFX Radeon RX 7600 SPEEDSTER SWFT 210 8GB GDDR6 RDNA 3 - 1 Year Warranty VGA RX7600 DDR6 Graphic Card", "price_raw": "Rp4.940.100", "price": 4940100, "location": "Kota Malang", "condition": "Bekas/C2C", "url": "https://toco.id/listing/xfx-radeon-rx-7600-speedster-swft-210-8gb-gddr6-rdna-3-1-year-warranty-vga-rx7600-ddr6-graphic-card-1787295496025-cf31", "source": "toco", "platform": "Toco", "brand": "XFX", "fan_type": "Dual Fan (2 Fan)", "model_tag": "RX 7600", "vram": "8GB", "is_steal_deal": false, "margin_est": -260550, "market_median": 4679550}];
+    const matrixData = {"RX 7600": {"model": "RX 7600", "samples": 6, "median": 4679550, "min_price": 4355010, "max_price": 4940100, "max_kulak": 3930822, "cuan": 748728}, "RX 6600": {"model": "RX 6600", "samples": 3, "median": 2900000, "min_price": 2300000, "max_price": 3000000, "max_kulak": 2436000, "cuan": 464000}};
+    let currentTab = 'ALL';
 
     // Stats
     document.getElementById('stat-total').innerText = dealsData.length;
+    const stealCount = dealsData.filter(d => d.is_steal_deal).length;
+    document.getElementById('stat-steal').innerText = stealCount + ' Unit';
+    
+    let maxMargin = 0;
+    dealsData.forEach(d => {
+      if (d.margin_est > maxMargin) maxMargin = d.margin_est;
+    });
+    document.getElementById('stat-max-margin').innerText = '+Rp ' + maxMargin.toLocaleString('id-ID');
 
     // Populate Selector
     const calcSelect = document.getElementById('calcModel');
@@ -237,7 +244,14 @@
       calcSelect.innerHTML += `<option value="${m}">${m}</option>`;
     }
 
-    // Decision Logic with Fan Adjustment
+    function setTab(tab) {
+      currentTab = tab;
+      document.getElementById('tabAll').className = tab === 'ALL' ? 'tab-btn active px-3 py-1.5 bg-[#03AC0E] border border-[#03AC0E] rounded-lg text-xs font-bold text-white transition' : 'tab-btn px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition';
+      document.getElementById('tabSteal').className = tab === 'STEAL' ? 'tab-btn active px-3 py-1.5 bg-[#03AC0E] border border-[#03AC0E] rounded-lg text-xs font-bold text-white transition' : 'tab-btn px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition';
+      renderListings();
+    }
+
+    // Decision Logic
     function checkViability() {
       const model = document.getElementById('calcModel').value;
       const fan = document.getElementById('calcFan').value;
@@ -265,15 +279,7 @@
 
       resBox.classList.remove('hidden');
 
-      if (price < data.min_price * 0.6) {
-        resBox.className = 'mt-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-800 text-xs font-semibold';
-        resBox.innerHTML = `
-          <div class="flex items-center gap-2 text-red-700 font-extrabold text-sm mb-1">
-            <i class="fa-solid fa-triangle-exclamation"></i> SANGAT TIDAK DISARANKAN / CURIGA RUSAK
-          </div>
-          <div>Harga Rp ${price.toLocaleString('id-ID')} terlalu jauh di bawah harga normal (${model} wajar Rp ${med.toLocaleString('id-ID')}). 95% unit mati total / part kanibal.</div>
-        `;
-      } else if (price <= maxKulak) {
+      if (price <= maxKulak) {
         resBox.className = 'mt-4 p-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs flex justify-between items-center';
         resBox.innerHTML = `
           <div>
@@ -295,7 +301,7 @@
             <div class="font-extrabold text-sm text-amber-600 flex items-center gap-1.5 mb-1">
               <i class="fa-solid fa-handshake"></i> MARGIN TIPIS (BISA DINEGO) [${fanTag}]
             </div>
-            <div class="text-slate-600">Nego turun sekitar Rp ${diff.toLocaleString('id-ID')} lagi ke seller agar dapat margin aman 16%+.</div>
+            <div class="text-slate-600">Nego turun sekitar Rp ${diff.toLocaleString('id-ID')} lagi ke seller agar dapat margin aman.</div>
           </div>
           <div class="text-right">
             <div class="text-xs text-slate-500 font-bold">Sisa Margin</div>
@@ -313,7 +319,7 @@
       }
     }
 
-    // Table Matrix with filter
+    // Table Matrix
     function renderTable() {
       const filter = document.getElementById('tableFilter').value.toLowerCase();
       const tBody = document.getElementById('matrixTableBody');
@@ -339,17 +345,17 @@
     new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ["RX 7600", "RX 6600", "RX 580"],
+        labels: ["RX 7600", "RX 6600"],
         datasets: [
           {
             label: 'Harga Pasar Normal',
-            data: [4940100, 2900000, 1225000],
+            data: [4679550, 2900000],
             backgroundColor: '#CBD5E1',
             borderRadius: 4
           },
           {
             label: 'Batas Max Kulak',
-            data: [4149684, 2436000, 1029000],
+            data: [3930822, 2436000],
             backgroundColor: '#03AC0E',
             borderRadius: 4
           }
@@ -377,7 +383,7 @@
       }
     });
 
-    // Filter Listings
+    // Render Clean Listings
     function renderListings() {
       const q = document.getElementById('searchInput').value.toLowerCase();
       const p = document.getElementById('platformFilter').value;
@@ -387,6 +393,7 @@
       grid.innerHTML = '';
 
       const filtered = dealsData.filter(d => {
+        if (currentTab === 'STEAL' && !d.is_steal_deal) return false;
         const matchQ = d.title.toLowerCase().includes(q) || (d.location && d.location.toLowerCase().includes(q));
         const matchP = p === 'ALL' || d.platform === p;
         const matchB = b === 'ALL' || (d.brand && d.brand.toUpperCase().includes(b));
@@ -395,7 +402,7 @@
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = '<div class="col-span-full text-center py-10 text-slate-400 text-xs font-semibold">Tidak ada unit yang sesuai dengan kombinasi filter.</div>';
+        grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-400 text-xs font-semibold">Tidak ada unit yang sesuai dengan filter.</div>';
         return;
       }
 
@@ -408,9 +415,20 @@
         if (d.fan_type && d.fan_type.includes('Triple')) fanBadge = 'bg-purple-50 text-purple-700 border border-purple-200';
         else if (d.fan_type && d.fan_type.includes('Single')) fanBadge = 'bg-amber-50 text-amber-700 border border-amber-200';
 
+        let stealCardHeader = '';
+        if (d.is_steal_deal && d.margin_est > 0) {
+          stealCardHeader = `
+            <div class="mb-2 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between text-xs">
+              <span class="font-extrabold text-amber-700 flex items-center gap-1"><i class="fa-solid fa-fire"></i> STEAL DEAL</span>
+              <span class="font-black text-amber-800">Margin: +Rp ${d.margin_est.toLocaleString('id-ID')}</span>
+            </div>
+          `;
+        }
+
         grid.innerHTML += `
-          <div class="card-tokped p-4 flex flex-col justify-between hover:shadow-md transition">
+          <div class="card-tokped p-4 flex flex-col justify-between hover:shadow-md transition ${d.is_steal_deal ? 'border-amber-300 ring-1 ring-amber-200' : ''}">
             <div>
+              ${stealCardHeader}
               <div class="flex justify-between items-center mb-2">
                 <span class="text-[10px] font-extrabold px-2 py-0.5 rounded border ${badgeColor} uppercase">${d.platform}</span>
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded ${fanBadge}">${d.fan_type || '2 Fan'}</span>
@@ -441,15 +459,12 @@
     document.getElementById('fanFilter').addEventListener('change', renderListings);
     renderListings();
 
-    // ==========================================
-    // LIVE BOT CONTROLLER & POLLING (API STATUS)
-    // ==========================================
+    // LIVE POLLER
     let wasScanning = false;
-
     async function pollBotStatus() {
       try {
         const res = await fetch('/api/status');
-        if (!res.ok) throw new Error('Server unreachable');
+        if (!res.ok) throw new Error('Unreachable');
         const data = await res.json();
 
         const dot = document.getElementById('botStatusDot');
@@ -458,45 +473,31 @@
         const btn = document.getElementById('btnTriggerScan');
         const btnIcon = document.getElementById('btnIcon');
         const btnText = document.getElementById('btnText');
-        const banner = document.getElementById('botActivityBanner');
-        const bannerText = document.getElementById('botActivityText');
 
         if (data.status === 'SCANNING') {
           wasScanning = true;
           dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping';
-          text.innerText = 'Sedang Scanning Marketplace...';
+          text.innerText = 'Sedang Scanning...';
           count.innerText = 'RUNNING';
           btn.disabled = true;
           btnIcon.className = 'fa-solid fa-spinner fa-spin';
           btnText.innerText = 'Scanning...';
-          banner.classList.remove('hidden');
-          bannerText.innerText = data.last_result_summary || 'Sedang memindai Tokopedia, Facebook Marketplace, dan Toco.id...';
         } else if (data.status === 'SLEEPING') {
           if (wasScanning) {
             wasScanning = false;
-            location.reload(); // Refresh data otomatis setelah scan selesai!
+            location.reload();
           }
           dot.className = 'w-2.5 h-2.5 rounded-full bg-[#03AC0E]';
           text.innerText = 'Standby (Tidur 10m)';
           btn.disabled = false;
           btnIcon.className = 'fa-solid fa-bolt';
           btnText.innerText = 'Scan Sekarang';
-          banner.classList.add('hidden');
 
           const mins = Math.floor(data.remaining_seconds / 60);
           const secs = data.remaining_seconds % 60;
           count.innerText = 'Scan berikutnya: ' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
-        } else {
-          dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-400';
-          text.innerText = 'Server Standby';
-          btn.disabled = false;
         }
-      } catch (err) {
-        // Running as raw file:// (not via server.py)
-        document.getElementById('botStatusDot').className = 'w-2.5 h-2.5 rounded-full bg-slate-400';
-        document.getElementById('botStatusText').innerText = 'Mode File Lokal (Buka via server.py untuk auto-control)';
-        document.getElementById('stat-server').innerText = 'Standalone';
-      }
+      } catch (err) {}
     }
 
     async function triggerBotScan() {
@@ -505,14 +506,8 @@
       try {
         const res = await fetch('/api/trigger-scan', { method: 'POST' });
         const data = await res.json();
-        if (data.success) {
-          pollBotStatus();
-        } else {
-          alert(data.message);
-        }
-      } catch (err) {
-        alert('Server lokal belum berjalan. Buka server.py atau pilih menu [1] di RUN_VGA_HUNTER.bat!');
-      }
+        if (data.success) pollBotStatus();
+      } catch (err) {}
     }
 
     setInterval(pollBotStatus, 2000);
