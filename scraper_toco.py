@@ -114,12 +114,21 @@ async def scrape_toco_vga(
                 seen_titles.add(norm_title)
                 
                 if min_price <= price_num <= max_price:
+                    # Ekstraksi Foto Toco
+                    img_url = ""
+                    try:
+                        img_el = card.locator("img").first
+                        if await img_el.count() > 0:
+                            img_url = await img_el.get_attribute("src") or ""
+                    except Exception:
+                        pass
                     results.append({
                         "title": title,
                         "price_raw": price_str,
                         "price": price_num,
                         "location": location,
                         "condition": "Bekas/C2C",
+                        "image_url": img_url,
                         "url": clean_url,
                         "source": "toco"
                     })

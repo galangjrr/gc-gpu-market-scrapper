@@ -150,6 +150,15 @@ async def scrape_fb_marketplace(
                     continue
                     
                 if min_price <= parsed["price"] <= max_price:
+                    # Ekstraksi Foto FB
+                    img_url = ""
+                    try:
+                        img_el = link.locator("img").first
+                        if await img_el.count() > 0:
+                            img_url = await img_el.get_attribute("src") or ""
+                    except Exception:
+                        pass
+                    parsed["image_url"] = img_url
                     parsed["url"] = clean_url
                     parsed["source"] = "facebook_marketplace"
                     results.append(parsed)

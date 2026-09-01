@@ -31,9 +31,10 @@ def sync_deals_to_supabase():
                             "platform": platform,
                             "location": it.get("location", "Indonesia"),
                             "brand": specs.get("brand", "OEM"),
-                            "fan_type": specs.get("fan_type", "Dual Fan"),
+                            "fan_type": specs.get("fan_type", "Dual Fan (2 Fan)"),
                             "vram": specs.get("vram", "-"),
-                            "url": it.get("url", ""),
+                            "image_url": it.get("image_url", ""),
+                            "url": it["url"],
                             "is_steal_deal": it.get("price", 0) > 0 and it.get("price", 0) <= 3500000
                         })
             except Exception:

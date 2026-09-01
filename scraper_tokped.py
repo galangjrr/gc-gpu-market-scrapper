@@ -86,6 +86,16 @@ async def scrape_tokopedia_vga(
                         location = line
                         
                 price_num = parse_price(price_str)
+                
+                # Ekstraksi Foto Thumbnail Produk
+                img_url = ""
+                try:
+                    img_el = card.locator("img").first
+                    if await img_el.count() > 0:
+                        img_url = await img_el.get_attribute("src") or await img_el.get_attribute("data-src") or ""
+                except Exception:
+                    pass
+                    
                 if min_price <= price_num <= max_price and title:
                     results.append({
                         "title": title,
@@ -93,6 +103,7 @@ async def scrape_tokopedia_vga(
                         "price": price_num,
                         "location": location or "Indonesia",
                         "condition": "Bekas",
+                        "image_url": img_url,
                         "url": clean_url,
                         "source": "tokopedia"
                     })

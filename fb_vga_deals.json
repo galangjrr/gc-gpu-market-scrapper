@@ -1,10 +1,18 @@
 [
   {
-    "title": "AFOX RADEON RX 560 4GB GDDR5",
-    "price_raw": "Rp123.123",
-    "price": 123123,
-    "location": "Depok",
-    "url": "https://www.facebook.com/marketplace/item/1570035134615986/",
+    "title": "rx 570 4gb ddr 5",
+    "price_raw": "Rp1.000.000",
+    "price": 1000000,
+    "location": "Cisoka, Jawa Barat, Indonesia",
+    "url": "https://www.facebook.com/marketplace/item/1105472085495969/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "Vga Asrock Rx6600xt 8gb Mati /Rusak",
+    "price_raw": "Rp1.000.000",
+    "price": 1000000,
+    "location": "Rancagong, Jawa Barat, Indonesia",
+    "url": "https://www.facebook.com/marketplace/item/4402138593357599/",
     "source": "facebook_marketplace"
   },
   {
@@ -24,11 +32,11 @@
     "source": "facebook_marketplace"
   },
   {
-    "title": "Dus Bekas VGA RX 6700 XT",
-    "price_raw": "Rp123",
-    "price": 1230000,
+    "title": "RX 580 Pulse 4GB",
+    "price_raw": "Rp1.250.000",
+    "price": 1250000,
     "location": "Jakarta, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/2179809779270111/",
+    "url": "https://www.facebook.com/marketplace/item/1936494270354910/",
     "source": "facebook_marketplace"
   },
   {
@@ -40,59 +48,27 @@
     "source": "facebook_marketplace"
   },
   {
+    "title": "Jual RX 570 4gb",
+    "price_raw": "Rp2.000.000",
+    "price": 2000000,
+    "location": "Jakarta, Indonesia",
+    "url": "https://www.facebook.com/marketplace/item/947653870998765/",
+    "source": "facebook_marketplace"
+  },
+  {
+    "title": "JUAL CEPAT Nvidia GTX 1070 8GB GDDR5",
+    "price_raw": "Rp2.000.000",
+    "price": 2000000,
+    "location": "Jakarta, Indonesia",
+    "url": "https://www.facebook.com/marketplace/item/1069288039031614/",
+    "source": "facebook_marketplace"
+  },
+  {
     "title": "RX 6600 8GB",
     "price_raw": "Rp2.300.000",
     "price": 2300000,
     "location": "Bekasi",
     "url": "https://www.facebook.com/marketplace/item/1682297919531399/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "￼VGA RX6500 XT ASUS DUAL FAN , LIKE NEW",
-    "price_raw": "Rp2.499.000",
-    "price": 2499000,
-    "location": "Tangerang",
-    "url": "https://www.facebook.com/marketplace/item/2152177515717822/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "VGA ASUS RX 6500 XT 4GB",
-    "price_raw": "Rp2.500.000",
-    "price": 2500000,
-    "location": "Depok",
-    "url": "https://www.facebook.com/marketplace/item/1582899409366096/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "VGA RX 6600 XT",
-    "price_raw": "Rp2.500.000",
-    "price": 2500000,
-    "location": "Jakarta, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/1053604984076825/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "Vga RX 6600XT 8GB DDR6 Dual Fan Gaming",
-    "price_raw": "Rp2.590.000",
-    "price": 2590000,
-    "location": "Bogor, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/1093282553198638/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "Vga RX 6600XT 8GB DDR6 Dual Fan Gaming",
-    "price_raw": "Rp2.590.000",
-    "price": 2590000,
-    "location": "Tangerang",
-    "url": "https://www.facebook.com/marketplace/item/1107111061937714/",
-    "source": "facebook_marketplace"
-  },
-  {
-    "title": "Vga RX 6600XT 8GB DDR6 Dual Fan Gaming",
-    "price_raw": "Rp2.590.000",
-    "price": 2590000,
-    "location": "Jakarta, Indonesia",
-    "url": "https://www.facebook.com/marketplace/item/1802177527773925/",
     "source": "facebook_marketplace"
   },
   {
@@ -104,19 +80,19 @@
     "source": "facebook_marketplace"
   },
   {
-    "title": "RX 6700xt 12GB",
-    "price_raw": "Rp3.500.000",
-    "price": 3500000,
+    "title": "￼VGA AMD RADEON RX 6700 XT GAMING EDITION",
+    "price_raw": "Rp4.212.000",
+    "price": 4212000,
     "location": "Tangerang",
-    "url": "https://www.facebook.com/marketplace/item/1609200530907815/",
+    "url": "https://www.facebook.com/marketplace/item/1742440243747019/",
     "source": "facebook_marketplace"
   },
   {
-    "title": "RTX 3060TI 8GB Zotac",
-    "price_raw": "Rp3.800.000",
-    "price": 3800000,
-    "location": "Tangerang",
-    "url": "https://www.facebook.com/marketplace/item/1068746585850686/",
+    "title": "Vga asus dual rx 7600",
+    "price_raw": "Rp4.500.000",
+    "price": 4500000,
+    "location": "Kabupaten Cianjur",
+    "url": "https://www.facebook.com/marketplace/item/2141432806747719/",
     "source": "facebook_marketplace"
   }
 ]
