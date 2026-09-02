@@ -17,35 +17,44 @@ DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1544396122817167523/Ior0
 # Format: model -> (HARGA_LANTAI_WARAS, MAX_HARGA_KULAK_UNTUNG)
 # ==============================================================================
 FLIPPING_TARGETS = {
-    # Nvidia RTX 40 & 30 Series (Fastest Moving)
-    "rtx 4060":        (3000000, 3900000),  # Resale normal 4.3jt+
-    "rtx 3070":        (3300000, 4300000),  # Resale normal 4.7jt+
-    "rtx 3060 ti":     (2800000, 3700000),  # Resale normal 4.1jt+
-    "rtx 3060":        (2300000, 3200000),  # Resale normal 3.6jt+
-    "rtx 3050":        (1600000, 2100000),  # Resale normal 2.4jt+
+    # Nvidia RTX 40 & 30 Series
+    "rtx 4060 ti":     (3800000, 4800000),
+    "rtx 4060":        (3000000, 3900000),
+    "rtx 3070 ti":     (3500000, 4500000),
+    "rtx 3070":        (3300000, 4300000),
+    "rtx 3060 ti":     (2800000, 3700000),
+    "rtx 3060":        (2300000, 3200000),
+    "rtx 3050":        (1600000, 2100000),
 
-    # Nvidia RTX 20 & GTX Series (Budget Favorit)
-    "rtx 2060 super":  (1900000, 2400000),  # Resale normal 2.7jt+
-    "rtx 2060":        (1600000, 2000000),  # Resale normal 2.3jt+
-    "gtx 1660 super":  (1100000, 1450000),  # Resale normal 1.8jt+
-    "gtx 1660 ti":     (1200000, 1500000),  # Resale normal 1.8jt+
-    "gtx 1660":        (1000000, 1350000),  # Resale normal 1.6jt+
-    "gtx 1650 super":  (900000,  1250000),  # Resale normal 1.5jt+
+    # Nvidia RTX 20 & GTX Series
+    "rtx 2080 ti":     (3000000, 4000000),
+    "rtx 2080 super":  (2500000, 3200000),
+    "rtx 2080":        (2200000, 2800000),
+    "rtx 2070 super":  (2000000, 2600000),
+    "rtx 2070":        (1800000, 2300000),
+    "rtx 2060 super":  (1900000, 2400000),
+    "rtx 2060":        (1600000, 2000000),
+    "gtx 1080 ti":     (1500000, 2200000),
+    "gtx 1080":        (1200000, 1600000),
+    "gtx 1070 ti":     (1100000, 1500000),
+    "gtx 1070":        (1000000, 1300000),
+    "gtx 1660 super":  (1400000, 1800000),
+    "gtx 1060":        (800000, 1100000),
 
-    # AMD Radeon RX 7000 & 6000 Series (High Demand)
-    "rx 7600":         (3000000, 4000000),  # Resale normal 4.4jt+
-    "rx 6700 xt":      (2600000, 3400000),  # Resale normal 3.9jt+
-    "rx 6600 xt":      (2000000, 2500000),  # Resale normal 2.9jt+
-    "rx 6600":         (1600000, 2050000),  # Resale normal 2.4jt+
+    # AMD Radeon RX Series
+    "rx 7600":         (2800000, 3500000),
+    "rx 6750 xt":      (3400000, 4200000),
+    "rx 6700 xt":      (3200000, 3800000),
+    "rx 6650 xt":      (2200000, 2800000),
+    "rx 6600 xt":      (2000000, 2500000),
+    "rx 6600":         (1700000, 2200000),
+    "rx 5700 xt":      (1500000, 1900000),
+    "rx 5700":         (1300000, 1600000),
+    "rx 5600 xt":      (1100000, 1500000),
 }
 
 # Blacklist VGA Purba / Ampas (Susah Dijual & Margin Receh)
-BANNED_JUNK_MODELS = [
-    "gt 710", "gt 730", "gt 1030", "gt 210", "gt 610", "gt710", "gt730", "gt1030",
-    "gtx 750", "gtx 650", "gtx 950", "gtx 960", "gtx 750ti", "gtx 750 ti",
-    "rx 550", "rx 560", "rx 460", "rx 570", "rx 580", "rx580", "rx570", "rx550",
-    "r7 240", "r7 250", "r7 370", "r9 380", "r9 390", "hd 7730", "hd 5450"
-]
+BANNED_JUNK_MODELS = ["4gb", "3gb", "2gb", "1gb", "rx 580", "rx 570", "rx 480", "rx 470", "rx 590", "gtx 1650", "gtx 1050", "gt 1030", "rx 6500", "rx 6400", "gt 730", "gt 710", "gtx 750", "gtx 950", "gtx 960", "rx 550", "rx 460"]
 
 # Blacklist kata kunci rusak / spare part / dus
 NEGATIVE_KEYWORDS = [
@@ -234,10 +243,7 @@ def send_discord_alert(deal: dict, deal_type: str = "STEAL_DEAL", smart_score: i
 
 async def run_sniper_round():
     init_db()
-    queries = [
-        "rtx 3060", "rx 6600", "gtx 1660 super",
-        "rtx 2060", "rtx 3070", "rx 6700 xt", "rtx 4060", "rx 7600"
-    ]
+    queries = list(FLIPPING_TARGETS.keys())
     all_deals = []
 
     print("\n" + "="*50)

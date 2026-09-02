@@ -140,30 +140,9 @@
       <div class="mt-4 pt-3 border-t border-slate-100 space-y-3">
         <p class="text-[11px] text-slate-500">Ketik harga tawaran seller untuk mengetahui status kelayakan beli dan estimasi profit.</p>
         <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
-          <div class="sm:col-span-4">
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Model VGA</label>
-            <select id="calcModel" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
-              <option value="RTX 4060">RTX 4060</option>
-              <option value="RTX 3070">RTX 3070</option>
-              <option value="RTX 3060 TI">RTX 3060 TI</option>
-              <option value="RTX 3060" selected>RTX 3060</option>
-              <option value="RTX 3050">RTX 3050</option>
-              <option value="RTX 2060 SUPER">RTX 2060 SUPER</option>
-              <option value="RTX 2060">RTX 2060</option>
-              <option value="GTX 1660 SUPER">GTX 1660 SUPER</option>
-              <option value="RX 7600">RX 7600</option>
-              <option value="RX 6700 XT">RX 6700 XT</option>
-              <option value="RX 6600 XT">RX 6600 XT</option>
-              <option value="RX 6600">RX 6600</option>
-            </select>
-          </div>
-          <div class="sm:col-span-3">
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Tipe Fan</label>
-            <select id="calcFan" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
-              <option value="triple">Triple Fan (+8%)</option>
-              <option value="dual" selected>Dual Fan (Standard)</option>
-              <option value="single">Single Fan (-6%)</option>
-            </select>
+          <div class="sm:col-span-7">
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Judul Iklan (Auto-deteksi Model & Kasta)</label>
+            <input type="text" id="calcTitle" placeholder="Contoh: Sapphire Nitro+ RX 6600 XT Mulus" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-[#03AC0E] focus:outline-none">
           </div>
           <div class="sm:col-span-3">
             <label class="block text-[11px] font-bold text-slate-600 mb-1">Harga Seller (Rp)</label>
@@ -171,7 +150,7 @@
           </div>
           <div class="sm:col-span-2">
             <button onclick="checkViability()" class="w-full py-2 bg-[#03AC0E] hover:bg-[#028A0B] text-white font-bold text-xs sm:text-sm rounded-lg transition shadow-sm">
-              Cek
+              Cek Pintar
             </button>
           </div>
         </div>
