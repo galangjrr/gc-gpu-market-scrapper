@@ -54,8 +54,8 @@ DROP POLICY IF EXISTS "Allow all on bot_commands" ON public.bot_commands;
 CREATE POLICY "Allow all on bot_commands" ON public.bot_commands FOR ALL USING (true);
 
 -- 5. Postgres View
-CREATE OR REPLACE VIEW public.vga_market_stats 
-WITH (security_invoker = on) AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS public.vga_market_stats 
+AS
 SELECT 
     upper(split_part(title, ' ', 1) || ' ' || split_part(title, ' ', 2)) as model_group,
     count(*) as total_samples,

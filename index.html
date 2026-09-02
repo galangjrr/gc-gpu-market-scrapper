@@ -251,7 +251,7 @@
       try {
         const { data, error } = await dbClient
           .from('vga_deals')
-          .select('*')
+          .select('title,price,price_raw,platform,location,brand,fan_type,url,is_steal_deal,image_url')
           .order('created_at', { ascending: false })
           .limit(200);
 

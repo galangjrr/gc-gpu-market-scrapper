@@ -36,6 +36,12 @@ class SmartLearner:
             c.execute("ALTER TABLE price_history ADD COLUMN brand TEXT DEFAULT 'unknown'")
         except sqlite3.OperationalError:
             pass
+
+        c.execute("""
+            CREATE INDEX IF NOT EXISTS idx_price_history_lookup 
+            ON price_history(model, brand, created_at)
+        """)
+
         
         # 2. Tabel frekuensi kata kunci untuk Naive Bayes Legitimacy Scoring
         c.execute("""
