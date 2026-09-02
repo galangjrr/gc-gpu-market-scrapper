@@ -2,11 +2,34 @@ import json
 import os
 import urllib.request
 import urllib.parse
-from generate_dashboard import parse_gpu_specs
 
 # KONFIGURASI SUPABASE LIVE
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://bgsmqeglwfjmkxbvbeay.supabase.co")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnc21xZWdsd2ZqbWt4YnZiZWF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNzk3ODEsImV4cCI6MjEwMzg1NTc4MX0.fqdvKhXuXgfZYqu-M2yJrNgLla7B-8xdC3Vht_uEBVY")
+
+
+def parse_gpu_specs(title):
+    t = title.lower()
+    brand = "OEM"
+    premium = ["rog", "strix", "suprim", "aorus", "vulcan", "neptune", "gamerock", "amp holo", "ichill", "hof", "taichi", "phantom", "sapphire", "nitro", "toxic", "red devil"]
+    triple = ["tuf", "gaming x", "gigabyte", "eagle", "windforce", "colorful", "palit", "gamingpro", "zotac", "trinity", "galax", "kfa2", "steel legend", "hellhound", "merc", "swft", "qick", "speedster"]
+    single = ["aero itx", "single fan", "itx", "mini"]
+    
+    tier = "Dual Fan (Standard)"
+    for b in premium:
+        if b in t: brand = b.upper(); tier = "Premium Tier"; break
+    if tier == "Dual Fan (Standard)":
+        for b in triple:
+            if b in t: brand = b.upper(); tier = "Triple Fan"; break
+    if tier == "Dual Fan (Standard)":
+        for b in single:
+            if b in t: brand = b.upper(); tier = "Single Fan / ITX"; break
+    if brand == "OEM":
+        brands = ["asus", "msi", "gigabyte", "zotac", "colorful", "palit", "galax", "inno3d", "asrock", "powercolor", "sapphire", "xfx", "evga", "pny"]
+        for b in brands:
+            if b in t: brand = b.upper(); break
+            
+    return {"brand": brand, "fan_type": tier, "vram": "8GB"} # VRAM as default fallback
 
 def sync_deals_to_supabase():
     if "YOUR_PROJECT" in SUPABASE_URL:
