@@ -32,6 +32,10 @@ class SmartLearner:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        try:
+            c.execute("ALTER TABLE price_history ADD COLUMN brand TEXT DEFAULT 'unknown'")
+        except sqlite3.OperationalError:
+            pass
         
         # 2. Tabel frekuensi kata kunci untuk Naive Bayes Legitimacy Scoring
         c.execute("""
@@ -70,10 +74,12 @@ class SmartLearner:
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
         
-        # Simpan sampel harga
+        brand = self._extract_brand(title)
+        
+        # Simpan sampel harga dengan brand
         c.execute(
-            "INSERT INTO price_history (model, price, platform) VALUES (?, ?, ?)",
-            (model.lower(), price, platform)
+            "INSERT INTO price_history (model, price, platform, brand) VALUES (?, ?, ?, ?)",
+            (model.lower(), price, platform, brand)
         )
         
         # Ekstraksi token kata untuk Naive Bayes
@@ -95,21 +101,43 @@ class SmartLearner:
         conn.commit()
         conn.close()
 
-    def get_learned_market_stats(self, model: str) -> dict | None:
+    def _extract_brand(self, title: str) -> str:
+        t = title.lower()
+        brands = ["rog", "strix", "tuf", "gaming x", "ventus", "suprim", "aorus", "gigabyte", "igame", "colorful", "palit", "manli", "pny", "zotac", "inno3d", "galax", "asrock"]
+        for b in brands:
+            if b in t:
+                return b
+        return "unknown"
+
+    def get_learned_market_stats(self, model: str, title: str = "") -> dict | None:
         """
         Hitung statistik pasar dinamis (Median, Batas Kulak, Margin)
         berdasarkan data yang dipelajari selama 30 hari terakhir.
+        Prioritaskan data brand spesifik jika cukup.
         """
+        brand = self._extract_brand(title)
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
         
-        c.execute("""
-            SELECT price FROM price_history 
-            WHERE model = ? AND created_at >= datetime('now', '-30 days')
-            ORDER BY price ASC
-        """, (model.lower(),))
-        
-        prices = [row[0] for row in c.fetchall()]
+        prices = []
+        if brand != "unknown":
+            # Cek harga berdasarkan brand spesifik dulu
+            c.execute("""
+                SELECT price FROM price_history 
+                WHERE model = ? AND brand = ? AND created_at >= datetime('now', '-30 days')
+                ORDER BY price ASC
+            """, (model.lower(), brand))
+            prices = [row[0] for row in c.fetchall()]
+            
+        # Jika sampel brand < 3, fallback ke rata-rata model secara umum
+        if len(prices) < 3:
+            c.execute("""
+                SELECT price FROM price_history 
+                WHERE model = ? AND created_at >= datetime('now', '-30 days')
+                ORDER BY price ASC
+            """, (model.lower(),))
+            prices = [row[0] for row in c.fetchall()]
+            
         conn.close()
         
         if len(prices) < 3:

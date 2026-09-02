@@ -125,12 +125,12 @@ def evaluate_deal(title: str, price: int) -> tuple[bool, str, str]:
     # 5. Cek apakah masuk Target VGA Fast Moving & Harga Masuk Akal Cuan
     for model, (min_floor, max_snipe) in FLIPPING_TARGETS.items():
         if model in t_clean:
-            # Cegah barang matot (di bawah harga lantai)
-            if price < min_floor:
+            # Cegah barang matot (di bawah harga lantai base sebelum ML)
+            if price > 0 and price < min_floor:
                 return False, "HARGA_CURIGA_MATOT", f"{model.upper()} harga Rp {price:,} terlalu murah (curiga matot)"
-                
+
             # Cek apakah ada data pasar hasil pembelajaran dinamis
-            learned = learner.get_learned_market_stats(model)
+            learned = learner.get_learned_market_stats(model, title)
             if learned:
                 max_snipe = learned["smart_max_kulak"]
                 min_floor = learned["smart_min_floor"]
@@ -245,27 +245,23 @@ async def run_sniper_round():
     print("="*50)
 
     for q in queries:
-        print(f"\n[*] Scan Query: '{q}'")
-        # 1. Tokopedia
-        try:
-            tokped_results = await scrape_tokopedia_vga(query=q, min_price=1000000, max_price=5000000, max_items=15)
-            all_deals.extend(tokped_results)
-        except Exception as e:
-            print(f"[-] Tokopedia error: {e}")
-
-        # 2. FB Marketplace
-        try:
-            fb_results = await scrape_fb_marketplace(query=q, city="jakarta", min_price=0, max_price=5000000, days_since_listed=7, max_items=15)
-            all_deals.extend(fb_results)
-        except Exception as e:
-            print(f"[-] FB error: {e}")
-
-        # 3. Toco.id
-        try:
-            toco_results = await scrape_toco_vga(query=q, min_price=1000000, max_price=5000000, max_items=15)
-            all_deals.extend(toco_results)
-        except Exception as e:
-            print(f"[-] Toco error: {e}")
+        print(f"\n[*] Scan Query: '{q}' (Concurrent Run)")
+        tasks = [
+            scrape_tokopedia_vga(query=q, min_price=1000000, max_price=5000000, max_items=15),
+            scrape_fb_marketplace(query=q, city="jakarta", min_price=0, max_price=5000000, days_since_listed=7, max_items=15),
+            scrape_toco_vga(query=q, min_price=1000000, max_price=5000000, max_items=15)
+        ]
+        
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        if isinstance(results[0], list): all_deals.extend(results[0])
+        else: print(f"[-] Tokopedia error: {results[0]}")
+            
+        if isinstance(results[1], list): all_deals.extend(results[1])
+        else: print(f"[-] FB error: {results[1]}")
+            
+        if isinstance(results[2], list): all_deals.extend(results[2])
+        else: print(f"[-] Toco error: {results[2]}")
 
     # Evaluasi & Alert
     new_alerts = 0
@@ -405,7 +401,11 @@ if __name__ == "__main__":
         conn.close()
         print("[*] Database seen_deals.db di-reset!")
         
-    if "--once" in sys.argv:
-        asyncio.run(run_sniper_round())
-    else:
-        asyncio.run(main_loop(interval_minutes=10))
+    try:
+        if "--once" in sys.argv:
+            asyncio.run(run_sniper_round())
+        else:
+            asyncio.run(main_loop(interval_minutes=10))
+    finally:
+        update_bot_state("OFFLINE")
+        print("[*] Bot dimatikan (OFFLINE).")

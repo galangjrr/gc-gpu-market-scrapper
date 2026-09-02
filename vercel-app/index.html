@@ -332,23 +332,31 @@
       }
     }
 
+    function updateBadgeState(state) {
+      const badge = document.getElementById('remoteStateBadge');
+      if (!badge) return;
+      badge.innerText = state;
+      if (state === 'SCANNING') {
+        badge.className = 'text-[9px] px-2 py-0.2 bg-blue-500/20 text-blue-300 rounded font-bold border border-blue-500/30 animate-pulse';
+      } else if (state === 'PAUSED') {
+        badge.className = 'text-[9px] px-2 py-0.2 bg-amber-500/20 text-amber-300 rounded font-bold border border-amber-500/30';
+      } else if (state === 'OFFLINE') {
+        badge.className = 'text-[9px] px-2 py-0.2 bg-red-500/20 text-red-300 rounded font-bold border border-red-500/30';
+      } else {
+        badge.className = 'text-[9px] px-2 py-0.2 bg-emerald-500/20 text-emerald-300 rounded font-bold border border-emerald-500/30';
+      }
+    }
+
     if (dbClient) {
+      dbClient.from('bot_commands').select('state').eq('id', 'main').single().then(({ data }) => {
+        if (data && data.state) updateBadgeState(data.state);
+      });
+
       dbClient
         .channel('public:bot_commands')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_commands' }, payload => {
           if (payload.new && payload.new.state) {
-            const badge = document.getElementById('remoteStateBadge');
-            const state = payload.new.state;
-            badge.innerText = state;
-            if (state === 'SCANNING') {
-              badge.className = 'text-[9px] px-2 py-0.2 bg-blue-500/20 text-blue-300 rounded font-bold border border-blue-500/30 animate-pulse';
-            } else if (state === 'PAUSED') {
-              badge.className = 'text-[9px] px-2 py-0.2 bg-amber-500/20 text-amber-300 rounded font-bold border border-amber-500/30';
-            } else if (state === 'OFFLINE') {
-              badge.className = 'text-[9px] px-2 py-0.2 bg-red-500/20 text-red-300 rounded font-bold border border-red-500/30';
-            } else {
-              badge.className = 'text-[9px] px-2 py-0.2 bg-emerald-500/20 text-emerald-300 rounded font-bold border border-emerald-500/30';
-            }
+            updateBadgeState(payload.new.state);
           }
         })
         .subscribe();

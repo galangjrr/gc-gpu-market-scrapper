@@ -47,6 +47,7 @@ async def scrape_toco_vga(
             viewport={"width": 1366, "height": 900}
         )
         page = await context.new_page()
+        await page.route("**/*.{png,jpg,jpeg,webp,svg,gif,woff,woff2,css}", lambda route: route.abort())
         
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=30000)

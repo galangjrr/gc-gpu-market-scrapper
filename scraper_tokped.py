@@ -43,6 +43,7 @@ async def scrape_tokopedia_vga(
         )
         
         page = await context.new_page()
+        await page.route("**/*.{png,jpg,jpeg,webp,svg,gif,woff,woff2,css}", lambda route: route.abort())
         
         try:
             # Tokopedia butuh wait networkidle atau load
