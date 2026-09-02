@@ -51,7 +51,8 @@ def sync_deals_to_supabase():
         print("[-] Supabase URL / Key belum dikonfigurasi. Lewati sync cloud.")
         return
 
-    files = ["tokped_vga_deals.json", "fb_vga_deals.json", "toco_vga_deals.json"]
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    files = [os.path.join(base_dir, f) for f in ["tokped_vga_deals.json", "fb_vga_deals.json", "toco_vga_deals.json"]]
     all_deals = []
     
     for f_name in files:

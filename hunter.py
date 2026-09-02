@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import re
 import sqlite3
 import sys
@@ -9,6 +10,9 @@ from scraper_tokped import scrape_tokopedia_vga
 from scraper_toco import scrape_toco_vga
 from sync_supabase import sync_deals_to_supabase
 from smart_learner import learner
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "seen_deals.db")
 
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1544396122817167523/Ior0SHvrYqGkuCpzU1zz0beB8YJGIzxFeeuHGvR67Hp0HqyCRLMBHT6npGmMWfldKxjK"
 
@@ -77,7 +81,7 @@ SAFE_PHRASES = [
 ALERT_UNPRICED = True
 
 def init_db():
-    conn = sqlite3.connect("seen_deals.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""
         CREATE TABLE IF NOT EXISTS deals (
@@ -92,7 +96,7 @@ def init_db():
     conn.close()
 
 def is_deal_seen(url: str) -> bool:
-    conn = sqlite3.connect("seen_deals.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT 1 FROM deals WHERE url = ?", (url,))
     exists = c.fetchone() is not None
@@ -100,7 +104,7 @@ def is_deal_seen(url: str) -> bool:
     return exists
 
 def save_deal(url: str, title: str, price: int, source: str):
-    conn = sqlite3.connect("seen_deals.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("INSERT OR IGNORE INTO deals (url, title, price, source) VALUES (?, ?, ?, ?)",
               (url, title, price, source))
@@ -165,7 +169,7 @@ def prune_old_discord_alerts(days: int = 7):
     """Hapus otomatis pesan alert lama di Discord agar channel tetap bersih."""
     if not DISCORD_WEBHOOK_URL:
         return
-    conn = sqlite3.connect("seen_deals.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""
         CREATE TABLE IF NOT EXISTS discord_alerts (
@@ -231,7 +235,7 @@ def send_discord_alert(deal: dict, deal_type: str = "STEAL_DEAL", smart_score: i
             data = json.loads(resp.read().decode("utf-8"))
             msg_id = data.get("id")
             if msg_id:
-                conn = sqlite3.connect("seen_deals.db")
+                conn = sqlite3.connect(DB_PATH)
                 c = conn.cursor()
                 c.execute("CREATE TABLE IF NOT EXISTS discord_alerts (message_id TEXT PRIMARY KEY, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
                 c.execute("INSERT OR IGNORE INTO discord_alerts (message_id) VALUES (?)", (str(msg_id),))
@@ -408,7 +412,7 @@ async def main_loop(interval_minutes: int = 10):
 
 if __name__ == "__main__":
     if "--reset-db" in sys.argv:
-        conn = sqlite3.connect("seen_deals.db")
+        conn = sqlite3.connect(DB_PATH)
         conn.cursor().execute("DELETE FROM deals")
         conn.commit()
         conn.close()

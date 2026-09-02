@@ -1,7 +1,10 @@
 import json
+import os
 import statistics
 import sqlite3
 import re
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Model yang dianalisis pasar
 TARGET_MODELS = [
@@ -12,7 +15,7 @@ TARGET_MODELS = [
 
 def calculate_market_prices():
     # Ambil data harga dari semua file scraping
-    files = ["tokped_vga_deals.json", "fb_vga_deals.json", "toco_vga_deals.json"]
+    files = [os.path.join(BASE_DIR, f) for f in ["tokped_vga_deals.json", "fb_vga_deals.json", "toco_vga_deals.json"]]
     all_items = []
     
     for f_name in files:
@@ -53,7 +56,7 @@ def calculate_market_prices():
                 "estimasi_cuan": f"Rp {estimasi_cuan:,}"
             }
             
-    with open("market_prices.json", "w", encoding="utf-8") as f:
+    with open(os.path.join(BASE_DIR, "market_prices.json"), "w", encoding="utf-8") as f:
         json.dump(market_summary, f, indent=2)
         
     return market_summary

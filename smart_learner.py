@@ -4,7 +4,7 @@ import re
 import sqlite3
 from datetime import datetime, timedelta
 
-DB_PATH = "seen_deals.db"
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seen_deals.db")
 
 class SmartLearner:
     """

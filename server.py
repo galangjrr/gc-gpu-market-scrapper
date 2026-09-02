@@ -9,7 +9,8 @@ from hunter import run_sniper_round, init_db
 from generate_dashboard import generate_dashboard
 
 PORT = 5000
-STATUS_FILE = "bot_status.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATUS_FILE = os.path.join(BASE_DIR, "bot_status.json")
 
 bot_state = {
     "status": "STOPPED",  # IDLE, SCANNING, SLEEPING, STOPPED

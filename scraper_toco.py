@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import re
 import urllib.parse
 from playwright.async_api import async_playwright
@@ -141,7 +142,7 @@ async def scrape_toco_vga(
                 if len(results) >= max_items:
                     break
                     
-            output_file = "toco_vga_deals.json"
+            output_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "toco_vga_deals.json")
             with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(results, f, indent=2, ensure_ascii=False)
                 

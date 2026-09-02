@@ -339,6 +339,15 @@
           }
         })
         .subscribe();
+
+      dbClient
+        .channel('public:vga_deals')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'vga_deals' }, () => {
+          loadData();
+        })
+        .subscribe();
+
+      setInterval(loadData, 30000);
     }
 
     function updateStatsAndPillCounts() {
@@ -474,48 +483,47 @@
 
       if (price <= maxKulak) {
         resBox.className = 'mt-3 p-3 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs flex justify-between items-center';
-        resBox.innerHTML = 
+        resBox.innerHTML = `
           <div>
             <div class="font-extrabold text-sm text-[#03AC0E] flex items-center gap-1.5 mb-1">
-              <i data-lucide="check-circle" class="w-4 h-4"></i> STEAL DEAL
+              <i class="fa-solid fa-circle-check"></i> STEAL DEAL
             </div>
-            <div class="text-slate-600 font-bold mb-0.5">Terdeteksi:  | </div>
-            <div class="text-slate-600 leading-tight">Harga Rp  di bawah max kulak (Rp ).</div>
+            <div class="text-slate-600 font-bold mb-0.5">Terdeteksi: ${specs.model} | ${specs.tag}</div>
+            <div class="text-slate-600 leading-tight">Harga Rp ${price.toLocaleString('id-ID')} di bawah max kulak (Rp ${maxKulak.toLocaleString('id-ID')}).</div>
           </div>
           <div class="text-right">
             <div class="text-[10px] text-slate-500 font-bold">Potensi Cuan</div>
-            <div class="text-base font-black text-[#03AC0E]">+Rp  <span class="text-[10px]">(%)</span></div>
+            <div class="text-base font-black text-[#03AC0E]">+Rp ${profit.toLocaleString('id-ID')} <span class="text-[10px]">(${roi}%)</span></div>
           </div>
-        ;
+        `;
       } else if (price <= med) {
         const diff = price - maxKulak;
         resBox.className = 'mt-3 p-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs flex justify-between items-center';
-        resBox.innerHTML = 
+        resBox.innerHTML = `
           <div>
             <div class="font-extrabold text-sm text-amber-600 flex items-center gap-1.5 mb-1">
-              <i data-lucide="handshake" class="w-4 h-4"></i> BISA DINEGO
+              <i class="fa-solid fa-handshake"></i> BISA DINEGO
             </div>
-            <div class="text-slate-600 font-bold mb-0.5">Terdeteksi:  | </div>
-            <div class="text-slate-600 leading-tight">Nego turun Rp  lagi. (Pasaran: Rp )</div>
+            <div class="text-slate-600 font-bold mb-0.5">Terdeteksi: ${specs.model} | ${specs.tag}</div>
+            <div class="text-slate-600 leading-tight">Nego turun Rp ${diff.toLocaleString('id-ID')} lagi. (Pasaran: Rp ${med.toLocaleString('id-ID')})</div>
           </div>
           <div class="text-right">
             <div class="text-[10px] text-slate-500 font-bold">Cuan Tipis</div>
-            <div class="text-base font-black text-amber-600">+Rp  <span class="text-[10px]">(%)</span></div>
+            <div class="text-base font-black text-amber-600">+Rp ${profit.toLocaleString('id-ID')} <span class="text-[10px]">(${roi}%)</span></div>
           </div>
-        ;
+        `;
       } else {
         resBox.className = 'mt-3 p-3 rounded-xl border border-red-200 bg-red-50 text-red-900 text-xs flex justify-between items-center';
-        resBox.innerHTML = 
+        resBox.innerHTML = `
           <div>
             <div class="font-extrabold text-sm text-red-600 flex items-center gap-1.5 mb-1">
-              <i data-lucide="x-circle" class="w-4 h-4"></i> KEMAHALAN
+              <i class="fa-solid fa-circle-xmark"></i> KEMAHALAN
             </div>
-            <div class="text-slate-600 font-bold mb-0.5">Terdeteksi:  | </div>
-            <div class="text-slate-600 leading-tight">Harga di atas pasaran (Rp ). Skip.</div>
+            <div class="text-slate-600 font-bold mb-0.5">Terdeteksi: ${specs.model} | ${specs.tag}</div>
+            <div class="text-slate-600 leading-tight">Harga di atas pasaran (Rp ${med.toLocaleString('id-ID')}). Skip.</div>
           </div>
-        ;
+        `;
       }
-      setTimeout(() => lucide.createIcons(), 50);
     }
 
     function renderListings() {

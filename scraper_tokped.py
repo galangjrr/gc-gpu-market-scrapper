@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import re
 from playwright.async_api import async_playwright
 
@@ -118,7 +119,7 @@ async def scrape_tokopedia_vga(
                     
             results.sort(key=lambda x: x["price"])
             
-            output_file = "tokped_vga_deals.json"
+            output_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tokped_vga_deals.json")
             with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(results, f, indent=2, ensure_ascii=False)
                 
