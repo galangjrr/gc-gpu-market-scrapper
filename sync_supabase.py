@@ -10,25 +10,40 @@ SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "eyJhbGciOiJIUzI1N
 
 def parse_gpu_specs(title):
     t = title.lower()
-    brand = "OEM"
-    premium = ["rog", "strix", "suprim", "aorus", "vulcan", "neptune", "gamerock", "amp holo", "ichill", "hof", "taichi", "phantom", "sapphire", "nitro", "toxic", "red devil"]
-    triple = ["tuf", "gaming x", "gigabyte", "eagle", "windforce", "colorful", "palit", "gamingpro", "zotac", "trinity", "galax", "kfa2", "steel legend", "hellhound", "merc", "swft", "qick", "speedster"]
-    single = ["aero itx", "single fan", "itx", "mini"]
     
-    tier = "Dual Fan (Standard)"
-    for b in premium:
-        if b in t: brand = b.upper(); tier = "Premium Tier"; break
-    if tier == "Dual Fan (Standard)":
-        for b in triple:
-            if b in t: brand = b.upper(); tier = "Triple Fan"; break
-    if tier == "Dual Fan (Standard)":
-        for b in single:
-            if b in t: brand = b.upper(); tier = "Single Fan / ITX"; break
-    if brand == "OEM":
-        brands = ["asus", "msi", "gigabyte", "zotac", "colorful", "palit", "galax", "inno3d", "asrock", "powercolor", "sapphire", "xfx", "evga", "pny"]
-        for b in brands:
-            if b in t: brand = b.upper(); break
+    # 1. Tentukan Brand
+    brand = "OEM"
+    brands = {"asus": "ASUS", "msi": "MSI", "gigabyte": "GIGABYTE", "zotac": "ZOTAC", "colorful": "COLORFUL", "palit": "PALIT", "galax": "GALAX", "inno3d": "INNO3D", "asrock": "ASROCK", "powercolor": "POWERCOLOR", "sapphire": "SAPPHIRE", "xfx": "XFX", "evga": "EVGA", "pny": "PNY"}
+    for k, v in brands.items():
+        if k in t:
+            brand = v
+            break
             
+    # 2. Tentukan Tier / Fan
+    tier = "Dual Fan (Standard)"
+    premium_keys = ["rog", "strix", "suprim", "aorus", "vulcan", "neptune", "gamerock", "amp holo", "ichill", "hof", "taichi", "phantom", "nitro", "toxic", "red devil"]
+    triple_keys = ["tuf", "trio", "gaming x trio", "trinity", "steel legend", "hellhound", "merc", "qick", "3 fan", "triple fan"]
+    single_keys = ["aero itx", "single fan", "itx", "mini"]
+    
+    for b in premium_keys:
+        if b in t: tier = "Premium Tier"; break
+        
+    if tier == "Dual Fan (Standard)":
+        for b in triple_keys:
+            if b in t: tier = "Triple Fan"; break
+            
+    if tier == "Dual Fan (Standard)":
+        for b in single_keys:
+            if b in t: tier = "Single Fan / ITX"; break
+
+    # Infer brand if still OEM but has premium tag
+    if brand == "OEM":
+        if "rog" in t or "strix" in t or "tuf" in t: brand = "ASUS"
+        elif "suprim" in t or "trio" in t: brand = "MSI"
+        elif "aorus" in t: brand = "GIGABYTE"
+        elif "nitro" in t or "toxic" in t: brand = "SAPPHIRE"
+        elif "red devil" in t or "hellhound" in t: brand = "POWERCOLOR"
+
     return {"brand": brand, "fan_type": tier, "vram": "8GB"} # VRAM as default fallback
 
 def sync_deals_to_supabase():

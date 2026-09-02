@@ -415,15 +415,56 @@
       renderListings();
     }
 
+    function extractSpecs(title) {
+      const t = title.toLowerCase();
+      let matchedModel = null;
+      for (const m of Object.keys(priceBaselines)) {
+        if (t.includes(m.toLowerCase())) {
+          matchedModel = m; break;
+        }
+      }
+      
+      const premiumBrands = ["rog", "strix", "suprim", "aorus", "vulcan", "neptune", "gamerock", "amp holo", "ichill", "hof", "taichi", "phantom", "nitro", "toxic", "red devil"];
+      const tripleBrands = ["tuf", "trio", "gaming x trio", "trinity", "steel legend", "hellhound", "merc", "qick", "3 fan", "triple fan"];
+      const singleBrands = ["aero itx", "single fan", "itx", "mini"];
+      
+      let tier = "dual";
+      let tag = "Standard / Dual Fan";
+      
+      for (const b of premiumBrands) {
+        if (t.includes(b)) { tier = "premium"; tag = "Kasta Ningrat (" + b.toUpperCase() + ")"; break; }
+      }
+      if (tier === "dual") {
+        for (const b of tripleBrands) {
+          if (t.includes(b)) { tier = "triple"; tag = "Triple Fan / Mid-High (" + b.toUpperCase() + ")"; break; }
+        }
+      }
+      if (tier === "dual") {
+        for (const b of singleBrands) {
+          if (t.includes(b)) { tier = "single"; tag = "Single Fan / ITX"; break; }
+        }
+      }
+      return { model: matchedModel, tier, tag };
+    }
+
     function checkViability() {
-      const model = document.getElementById('calcModel').value;
-      const fan = document.getElementById('calcFan').value;
+      const title = document.getElementById('calcTitle').value;
       const price = parseInt(document.getElementById('calcPrice').value);
       const resBox = document.getElementById('calcResult');
 
-      if (!price || isNaN(price)) return;
-      const baseMed = priceBaselines[model] || 3000000;
-      let multiplier = fan === 'triple' ? 1.08 : fan === 'single' ? 0.94 : 1.0;
+      if (!title || !price || isNaN(price)) return;
+      
+      const specs = extractSpecs(title);
+      if (!specs.model) {
+        resBox.classList.remove('hidden');
+        resBox.className = 'mt-3 p-3 rounded-xl border border-red-300 bg-red-50 text-red-900 text-xs text-center font-bold';
+        resBox.innerText = "Model VGA tidak dikenali dari judul!";
+        return;
+      }
+
+      const baseMed = priceBaselines[specs.model] || 3000000;
+      let multiplier = specs.tier === 'premium' ? 1.15 : specs.tier === 'triple' ? 1.08 : specs.tier === 'single' ? 0.94 : 1.0;
+      
       const med = Math.round(baseMed * multiplier);
       const maxKulak = Math.round(med * 0.84);
       const profit = med - price;
@@ -433,41 +474,48 @@
 
       if (price <= maxKulak) {
         resBox.className = 'mt-3 p-3 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs flex justify-between items-center';
-        resBox.innerHTML = `
+        resBox.innerHTML = 
           <div>
-            <div class="font-extrabold text-sm text-[#03AC0E] flex items-center gap-1 mb-0.5">
-              <i class="fa-solid fa-circle-check"></i> SANGAT LAYAK (STEAL DEAL)
+            <div class="font-extrabold text-sm text-[#03AC0E] flex items-center gap-1.5 mb-1">
+              <i data-lucide="check-circle" class="w-4 h-4"></i> STEAL DEAL
             </div>
-            <div class="text-slate-600">Harga seller Rp ${price.toLocaleString('id-ID')} &le; batas aman (Rp ${maxKulak.toLocaleString('id-ID')}).</div>
+            <div class="text-slate-600 font-bold mb-0.5">Terdeteksi:  | </div>
+            <div class="text-slate-600 leading-tight">Harga Rp  di bawah max kulak (Rp ).</div>
           </div>
           <div class="text-right">
             <div class="text-[10px] text-slate-500 font-bold">Potensi Cuan</div>
-            <div class="text-base font-black text-[#03AC0E]">+Rp ${profit.toLocaleString('id-ID')} <span class="text-[10px]">(${roi}%)</span></div>
+            <div class="text-base font-black text-[#03AC0E]">+Rp  <span class="text-[10px]">(%)</span></div>
           </div>
-        `;
+        ;
       } else if (price <= med) {
+        const diff = price - maxKulak;
         resBox.className = 'mt-3 p-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 text-xs flex justify-between items-center';
-        resBox.innerHTML = `
+        resBox.innerHTML = 
           <div>
-            <div class="font-extrabold text-xs sm:text-sm text-amber-600 flex items-center gap-1 mb-0.5">
-              <i class="fa-solid fa-handshake"></i> BISA DINEGO (MARGIN TIPIS)
+            <div class="font-extrabold text-sm text-amber-600 flex items-center gap-1.5 mb-1">
+              <i data-lucide="handshake" class="w-4 h-4"></i> BISA DINEGO
             </div>
-            <div class="text-slate-600">Nego turun sedikit lagi untuk margin aman.</div>
+            <div class="text-slate-600 font-bold mb-0.5">Terdeteksi:  | </div>
+            <div class="text-slate-600 leading-tight">Nego turun Rp  lagi. (Pasaran: Rp )</div>
           </div>
           <div class="text-right">
-            <div class="text-[10px] text-slate-500 font-bold">Sisa Margin</div>
-            <div class="text-sm font-extrabold text-amber-600">+Rp ${profit.toLocaleString('id-ID')}</div>
+            <div class="text-[10px] text-slate-500 font-bold">Cuan Tipis</div>
+            <div class="text-base font-black text-amber-600">+Rp  <span class="text-[10px]">(%)</span></div>
           </div>
-        `;
+        ;
       } else {
-        resBox.className = 'mt-3 p-3 rounded-xl border border-red-200 bg-red-50 text-red-800 text-xs';
-        resBox.innerHTML = `
-          <div class="font-extrabold text-xs sm:text-sm text-red-700 flex items-center gap-1 mb-0.5">
-            <i class="fa-solid fa-circle-xmark"></i> JANGAN DIBELI (KEMAHALAN)
+        resBox.className = 'mt-3 p-3 rounded-xl border border-red-200 bg-red-50 text-red-900 text-xs flex justify-between items-center';
+        resBox.innerHTML = 
+          <div>
+            <div class="font-extrabold text-sm text-red-600 flex items-center gap-1.5 mb-1">
+              <i data-lucide="x-circle" class="w-4 h-4"></i> KEMAHALAN
+            </div>
+            <div class="text-slate-600 font-bold mb-0.5">Terdeteksi:  | </div>
+            <div class="text-slate-600 leading-tight">Harga di atas pasaran (Rp ). Skip.</div>
           </div>
-          <div>Harga Rp ${price.toLocaleString('id-ID')} di atas pasar wajar (normal Rp ${med.toLocaleString('id-ID')}).</div>
-        `;
+        ;
       }
+      setTimeout(() => lucide.createIcons(), 50);
     }
 
     function renderListings() {
