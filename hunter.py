@@ -302,6 +302,13 @@ async def run_sniper_round():
     print(f"[*] RINGKASAN PEMINDAIAN SNIPER:")
     print(f"[*] Total valid deals ditemukan: {len(all_deals)}")
     
+    # Generate Local HTML Dashboard
+    try:
+        from generate_dashboard import generate_dashboard
+        generate_dashboard()
+    except Exception as e:
+        print(f"[-] Dashboard gen error: {e}")
+    
     # Sinkronisasi ke Supabase Cloud
     try:
         sync_deals_to_supabase()
