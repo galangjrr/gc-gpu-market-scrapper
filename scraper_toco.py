@@ -104,6 +104,10 @@ async def scrape_toco_vga(
                 if any(b in t_low for b in BANNED_NON_GPU):
                     continue
                     
+                # 1.5. Reject barang baru / dropshipper (gambar generic)
+                if any(k in t_low for k in ["bnib", "brand new", "bnob", "baru garansi", "stok ready", "stok baru"]):
+                    continue
+                    
                 # 2. Wajib lolos regex GPU nyata
                 if not GPU_STRICT_REGEX.search(t_low):
                     continue

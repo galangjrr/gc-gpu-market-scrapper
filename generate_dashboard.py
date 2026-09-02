@@ -631,11 +631,19 @@ def generate_dashboard():
             </div>
           `;
         }}
+        
+        let imgHtml = '';
+        if (d.image_url) {{
+          imgHtml = `<div class="mb-3 w-full h-32 overflow-hidden rounded-lg bg-slate-100 flex items-center justify-center">
+                       <img src="${{d.image_url}}" class="w-full h-full object-cover opacity-90 hover:opacity-100 transition" onerror="this.style.display='none'">
+                     </div>`;
+        }}
 
         grid.innerHTML += `
           <div class="card-tokped p-4 flex flex-col justify-between hover:shadow-md transition ${{d.is_steal_deal ? 'border-amber-300 ring-1 ring-amber-200' : ''}}">
             <div>
               ${{stealCardHeader}}
+              ${{imgHtml}}
               <div class="flex justify-between items-center mb-2">
                 <span class="text-[10px] font-extrabold px-2 py-0.5 rounded border ${{badgeColor}} uppercase">${{d.platform}}</span>
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded ${{fanBadge}}">${{d.fan_type || '2 Fan'}}</span>

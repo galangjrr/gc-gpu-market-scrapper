@@ -98,6 +98,10 @@ async def scrape_tokopedia_vga(
                     pass
                     
                 if min_price <= price_num <= max_price and title:
+                    t_low = title.lower()
+                    if any(k in t_low for k in ["bnib", "brand new", "bnob", "baru garansi", "stok ready", "stok baru"]):
+                        continue
+                    
                     results.append({
                         "title": title,
                         "price_raw": price_str,

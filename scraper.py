@@ -63,7 +63,11 @@ def clean_card_lines(lines: list[str]) -> dict | None:
     if any(b in t_low for b in BANNED_NON_GPU):
         return None
         
-    # 2. Wajib lolos Regex GPU ketat
+    # 2. Reject barang baru / bnib
+    if any(k in t_low for k in ["bnib", "brand new", "bnob", "baru garansi", "stok ready", "stok baru"]):
+        return None
+        
+    # 3. Wajib lolos Regex GPU ketat
     if not GPU_REGEX_PATTERN.search(t_low):
         return None
         
@@ -106,7 +110,7 @@ async def scrape_fb_marketplace(
         )
         
         page = await context.new_page()
-        await page.route("**/*.{png,jpg,jpeg,webp,svg,gif,woff,woff2}", lambda route: route.abort())
+        await page.route("**/*.{png,jpg,jpeg,webp,svg,gif,woff,woff2,css}", lambda route: route.abort())
         
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=45000)
