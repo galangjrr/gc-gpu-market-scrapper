@@ -4,9 +4,13 @@ Semua konstanta, regex, blacklist, tier, dan secrets terpusat di sini.
 """
 import os
 import re
+from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "seen_deals.db")
+
+# Load .env file automatically
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 # ==============================================================================
 # SECRETS (dari .env atau fallback hardcoded sementara)
