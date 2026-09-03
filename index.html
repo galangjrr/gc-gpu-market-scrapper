@@ -540,27 +540,20 @@
         return;
       }
 
-      // Ambil median dinamis dari database Supabase riil
-      const matchingDeals = allDeals.filter(d => 
-        d.title.toLowerCase().includes(specs.model.toLowerCase()) && d.price >= 800000
-      );
-      
-      let baseMed = 0;
-      let priceSource = 'Standar Baseline';
-      if (matchingDeals.length >= 2) {
-        const sortedPrices = matchingDeals.map(d => d.price).sort((a, b) => a - b);
-        baseMed = sortedPrices[Math.floor(sortedPrices.length / 2)];
-        priceSource = `Live Supabase (${matchingDeals.length} unit)`;
-      } else {
-        baseMed = priceBaselines[specs.model] || 3000000;
-      }
+      // Basis data `priceBaselines` adalah nilai MAX KULAK (batas atas snipe), BUKAN median pasaran.
+      // Kita hapus logika ambil median dari `allDeals` karena `allDeals` isinya cuma VGA murah (skewed data).
+      const baseMaxKulak = priceBaselines[specs.model] || 3000000;
 
-      let multiplier = specs.tier === 'premium' ? 1.15 : specs.tier === 'triple' ? 1.08 : specs.tier === 'single' ? 0.94 : 1.0;
+      // Samakan multiplier dengan config.py (Premium = 1.10, Triple = 1.05, Single = 0.90)
+      let multiplier = specs.tier === 'premium' ? 1.10 : specs.tier === 'triple' ? 1.05 : specs.tier === 'single' ? 0.90 : 1.0;
       
-      const med = Math.round(baseMed * multiplier);
-      const maxKulak = Math.round(med * 0.84);
+      const maxKulak = Math.round(baseMaxKulak * multiplier);
+      // Reverse-engineer harga pasaran normal (asumsi profit margin 16%)
+      const med = Math.round(maxKulak / 0.84);
+      
       const profit = med - price;
       const roi = ((profit / price) * 100).toFixed(1);
+      const priceSource = 'Standar Baseline (Sinkron Config.py)';
 
       resBox.classList.remove('hidden');
 
