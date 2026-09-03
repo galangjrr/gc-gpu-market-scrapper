@@ -686,12 +686,19 @@
               </div>
               
               ${d.is_steal_deal ? `
-                <div class="absolute bottom-2 left-2">
+                <div class="absolute bottom-2 left-2 flex gap-1">
                   <span class="px-2 py-0.5 bg-amber-500 text-white rounded text-[9px] font-black shadow-sm flex items-center gap-1">
                     <i class="fa-solid fa-fire text-white"></i> STEAL DEAL
                   </span>
+                  ${d.smart_score ? `<span class="px-1.5 py-0.5 bg-slate-900/80 text-white rounded text-[9px] font-bold shadow-sm backdrop-blur-sm">AI: ${d.smart_score}</span>` : ''}
                 </div>
-              ` : ''}
+              ` : (d.deal_type === 'UNPRICED' ? `
+                <div class="absolute bottom-2 left-2">
+                  <span class="px-2 py-0.5 bg-purple-500 text-white rounded text-[9px] font-black shadow-sm flex items-center gap-1">
+                    <i class="fa-solid fa-comments text-white"></i> TANYA HARGA
+                  </span>
+                </div>
+              ` : '')}
             </div>
           `;
         }
@@ -709,7 +716,12 @@
                   <span class="px-1.5 py-0.5 bg-amber-50 border border-amber-200 rounded text-amber-700 text-[10px] font-extrabold flex items-center gap-1">
                     <i class="fa-solid fa-fire text-amber-500"></i> STEAL DEAL
                   </span>
-                ` : ''}
+                  ${d.smart_score ? `<span class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-600 text-[10px] font-bold">AI: ${d.smart_score}</span>` : ''}
+                ` : (d.deal_type === 'UNPRICED' ? `
+                  <span class="px-1.5 py-0.5 bg-purple-50 border border-purple-200 rounded text-purple-700 text-[10px] font-extrabold flex items-center gap-1">
+                    <i class="fa-solid fa-comments text-purple-500"></i> TANYA HARGA
+                  </span>
+                ` : '')}
               </div>
               <span class="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 rounded text-slate-600">${d.fan_type || '2 Fan'}</span>
             </div>
