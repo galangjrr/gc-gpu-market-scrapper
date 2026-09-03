@@ -19,3 +19,5 @@ seen_deals.db
 shopee_session/
 test_*.py
 diagnose_*.py
+smart_learner.db
+*.json

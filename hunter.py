@@ -5,80 +5,28 @@ import re
 import sqlite3
 import sys
 import urllib.request
-from scraper import scrape_fb_marketplace
-from scraper_tokped import scrape_tokopedia_vga
-from scraper_toco import scrape_toco_vga
+from datetime import datetime
+
+from config import (
+    BASE_DIR, DB_PATH,
+    SUPABASE_URL, SUPABASE_SERVICE_KEY, DISCORD_WEBHOOK_URL,
+    FLIPPING_TARGETS, FLIPPING_TARGETS_SORTED,
+    BANNED_JUNK_BRANDS, BANNED_JUNK_MODELS, BANNED_NON_GPU, BANNED_NEW_ITEMS,
+    SAFE_PHRASES, COOLER_TIERS, MIN_PRICE_FLOOR,
+    SEARCH_QUERIES, ALERT_UNPRICED,
+    get_cooler_tier, detect_brand, match_gpu_model, is_title_clean,
+)
+from scrapers import BrowserManager
+from scrapers.facebook import scrape_fb_marketplace
+from scrapers.tokped import scrape_tokopedia_vga
+from scrapers.toco import scrape_toco_vga
 from sync_supabase import sync_deals_to_supabase
 from smart_learner import learner
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "seen_deals.db")
-
-DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1544396122817167523/Ior0SHvrYqGkuCpzU1zz0beB8YJGIzxFeeuHGvR67Hp0HqyCRLMBHT6npGmMWfldKxjK"
 
 # ==============================================================================
-# DAFTAR VGA FAST MOVING (LAKU KERAS & CUAN FLIPPING) + TARGET HARGA SNIPER
-# Format: model -> (HARGA_LANTAI_WARAS, MAX_HARGA_KULAK_UNTUNG)
+# DATABASE LOKAL (SQLite seen_deals)
 # ==============================================================================
-FLIPPING_TARGETS = {
-    # Nvidia RTX 40 & 30 Series
-    "rtx 4060 ti":     (3800000, 4800000),
-    "rtx 4060":        (3000000, 3900000),
-    "rtx 3070 ti":     (3500000, 4500000),
-    "rtx 3070":        (3300000, 4300000),
-    "rtx 3060 ti":     (2800000, 3700000),
-    "rtx 3060":        (2300000, 3200000),
-    "rtx 3050":        (1600000, 2100000),
-
-    # Nvidia RTX 20 & GTX Series
-    "rtx 2080 ti":     (3000000, 4000000),
-    "rtx 2080 super":  (2500000, 3200000),
-    "rtx 2080":        (2200000, 2800000),
-    "rtx 2070 super":  (2000000, 2600000),
-    "rtx 2070":        (1800000, 2300000),
-    "rtx 2060 super":  (1900000, 2400000),
-    "rtx 2060":        (1600000, 2000000),
-    "gtx 1080 ti":     (1500000, 2200000),
-    "gtx 1080":        (1200000, 1600000),
-    "gtx 1070 ti":     (1100000, 1500000),
-    "gtx 1070":        (1000000, 1300000),
-    "gtx 1660 super":  (1400000, 1800000),
-    "gtx 1060":        (800000, 1100000),
-
-    # AMD Radeon RX Series
-    "rx 7600":         (2800000, 3500000),
-    "rx 6750 xt":      (3400000, 4200000),
-    "rx 6700 xt":      (3200000, 3800000),
-    "rx 6650 xt":      (2200000, 2800000),
-    "rx 6600 xt":      (2000000, 2500000),
-    "rx 6600":         (1700000, 2200000),
-    "rx 5700 xt":      (1500000, 1900000),
-    "rx 5700":         (1300000, 1600000),
-    "rx 5600 xt":      (1100000, 1500000),
-}
-
-# Blacklist VGA Purba / Ampas (Susah Dijual & Margin Receh)
-BANNED_JUNK_MODELS = ["4gb", "3gb", "2gb", "1gb", "rx 580", "rx 570", "rx 480", "rx 470", "rx 590", "gtx 1650", "gtx 1050", "gt 1030", "rx 6500", "rx 6400", "gt 730", "gt 710", "gtx 750", "gtx 950", "gtx 960", "rx 550", "rx 460"]
-
-# Blacklist kata kunci rusak / spare part / dus
-NEGATIVE_KEYWORDS = [
-    "no display", "nodisplay", "no disp", "no signal", "tanpa display",
-    "part", "parts", "part -", "bahan", "servis", "service", "kanibal", "kanibalan",
-    "dus", "box", "kotak", "hanya box", "box only", "no unit", "empty box",
-    "fan", "kipas", "backplate", "bracket", "heatsink", "casing", "cooler",
-    "matot", "mati", "rusak", "artefak", "mati total", "kabel", "riser",
-    "minus", "error", "blank", "garis", "short", "konslet"
-]
-
-# Frasa aman (tidak diblokir)
-SAFE_PHRASES = [
-    "no minus", "tanpa minus", "non minus", "gak ada minus", "tidak ada minus",
-    "no artefak", "tanpa artefak", "bebas artefak", "anti artefak",
-    "bukan matot", "bukan kanibal", "bukan bahan", "bukan bekas servis", "tanpa kendala",
-    "dijamin aman", "normal jaya", "siap pakai", "tes lancar", "lulus tes"
-]
-
-ALERT_UNPRICED = True
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -111,59 +59,129 @@ def save_deal(url: str, title: str, price: int, source: str):
     conn.commit()
     conn.close()
 
-def evaluate_deal(title: str, price: int) -> tuple[bool, str, str]:
-    t_clean = title.lower()
-    
-    # 1. Bersihkan frasa positif
-    for safe in SAFE_PHRASES:
-        t_clean = t_clean.replace(safe, "")
-        
-    # 2. Tolak kata kunci rusak / part / dus
-    for bad_word in NEGATIVE_KEYWORDS:
-        if re.search(r"\b" + re.escape(bad_word) + r"\b", t_clean) or bad_word in t_clean:
-            return False, "DIBLOKIR_KATA_KUNCI", f"Mengandung '{bad_word}'"
-            
-    # 3. Tolak VGA purba/ampas (GT 730, RX 580 bekas mining, GTX 750 Ti)
-    for junk in BANNED_JUNK_MODELS:
-        if junk in t_clean:
-            return False, "VGA_AMPAS", f"Model tidak prospek ({junk})"
-            
-    # 4. Tangkap postingan Free / Nego jika masuk daftar model incaran
-    if price == 0 and ALERT_UNPRICED:
-        for model in FLIPPING_TARGETS.keys():
-            if model in t_clean:
-                return True, "UNPRICED", f"Free/Nego {model.upper()}"
-        return False, "FREE_BUKAN_TARGET", "Bukan VGA target flipper"
-        
-    # 5. Cek apakah masuk Target VGA Fast Moving & Harga Masuk Akal Cuan
-    for model, (min_floor, max_snipe) in FLIPPING_TARGETS.items():
-        if model in t_clean:
-            # Cegah barang matot (di bawah harga lantai base sebelum ML)
-            if price > 0 and price < min_floor:
-                return False, "HARGA_CURIGA_MATOT", f"{model.upper()} harga Rp {price:,} terlalu murah (curiga matot)"
 
-            # Cek apakah ada data pasar hasil pembelajaran dinamis
-            learned = learner.get_learned_market_stats(model, title)
+# ==============================================================================
+# EVALUASI DEAL
+# ==============================================================================
+
+def evaluate_deal_stage1(title: str, price: int, source: str = "") -> tuple[bool, str, str, int, bool]:
+    """Evaluasi Stage 1 (Fast Scan): return (should_alert, deal_type, reason, score, needs_stage2)."""
+
+    if not is_title_clean(title):
+        return False, "DIBLOKIR_KATA_KUNCI", "Mengandung kata kunci terlarang", 0, False
+
+    model = match_gpu_model(title)
+    is_fb = "facebook" in source.lower()
+
+    if not model:
+        # PENGECUALIAN FB MARKETPLACE: Judul kaku/malas. Lempar ke Stage 2 (Mystery GPU)
+        # Harga wajar ATAU harga troll (0 - 10jt) tetap dibuka deskripsinya.
+        if is_fb and price <= 10000000:
+            return False, "PENDING_STAGE2_MYSTERY", "Mystery GPU FB (Cari model di deskripsi)", 50, True
+        return False, "BUKAN_MODEL_TARGET", "Bukan VGA incaran bisnis", 0, False
+
+    # Jika harga Troll/Unpriced, selalu cek deskripsi (Stage 2) agar tidak kejebak barang rusak/minus
+    if price == 0 and ALERT_UNPRICED:
+        return False, "PENDING_STAGE2_UNPRICED", f"Free/Nego {model.upper()} (Cek Deskripsi)", 50, True
+        
+    if 0 < price < MIN_PRICE_FLOOR:
+        if is_fb:
+            return False, "PENDING_STAGE2_UNPRICED", f"Harga Troll FB {model.upper()} (Cek Deskripsi)", 50, True
+        return False, "HARGA_PANCINGAN", f"Rp {price:,} di bawah lantai Rp {MIN_PRICE_FLOOR:,}", 0, False
+
+    min_floor, max_snipe = FLIPPING_TARGETS[model]
+    tier_name, tier_mult, tier_bonus = get_cooler_tier(title)
+
+    learned = learner.get_learned_market_stats(model, title)
+    if learned:
+        max_snipe = learned["smart_max_kulak"]
+        min_floor = learned["smart_min_floor"]
+
+    max_snipe = int(max_snipe * tier_mult)
+    min_floor = int(min_floor * tier_mult)
+
+    if price < min_floor:
+        return False, "HARGA_CURIGA_MATOT", f"{model.upper()} Rp {price:,} terlalu murah (curiga matot)", 0, False
+
+    if price <= max_snipe:
+        smart_score = learner.compute_steal_score(title, price, model, max_snipe)
+        smart_score = min(100, max(0, smart_score + tier_bonus))
+        tier_tag = f" [{tier_name}]" if tier_name != "A" else ""
+        return False, "PENDING_STAGE2", f"Target {model.upper()}{tier_tag} (Menunggu Stage 2)", smart_score, True
+
+    return False, "HARGA_KEMAHALAN", f"{model.upper()} Rp {price:,} di atas batas kulak Rp {max_snipe:,}", 0, False
+
+
+def evaluate_deal_stage2(deal: dict, desc: str, base_score: int) -> tuple[bool, str, str, int]:
+    """Evaluasi Stage 2 (Deep Scan): Deteksi NLP Regex ringan pada teks deskripsi."""
+    title = deal["title"]
+    price = deal["price"]
+    source = deal.get("source", "")
+    is_fb = "facebook" in source.lower()
+    
+    model = match_gpu_model(title)
+    
+    # 1. Pastikan bukan bot jebakan / troll kosong
+    if len(desc) < 10:
+        return True, "STEAL_DEAL_NO_DESC", f"{model.upper() if model else 'VGA'} (Deskripsi terlalu pendek)", max(0, base_score - 10)
+
+    # 2. MYSTERY GPU RESOLUTION (Model gak ada di judul)
+    is_unpriced_troll = (price == 0 or (0 < price < MIN_PRICE_FLOOR and is_fb))
+    
+    if not model:
+        model = match_gpu_model(desc)
+        if not model:
+            return False, "DIBLOKIR_STAGE2", "Model VGA tetap tidak ditemukan di deskripsi", 0
+            
+        if not is_unpriced_troll:
+            # Evaluasi ulang harga normal karena model baru ketemu
+            min_floor, max_snipe = FLIPPING_TARGETS[model]
+            tier_name, tier_mult, tier_bonus = get_cooler_tier(desc)
+            
+            learned = learner.get_learned_market_stats(model, desc)
             if learned:
                 max_snipe = learned["smart_max_kulak"]
                 min_floor = learned["smart_min_floor"]
+                
+            max_snipe = int(max_snipe * tier_mult)
+            min_floor = int(min_floor * tier_mult)
             
-            # Harga Rp 0 / minta chat seller
-            if price == 0:
-                return True, "UNPRICED", f"Harga Rp 0 / Chat Seller ({model.upper()})", 50
+            if price < min_floor: return False, "HARGA_CURIGA_MATOT", f"{model.upper()} Rp {price:,} curiga matot (dari deskripsi)", 0
+            if price > max_snipe: return False, "HARGA_KEMAHALAN", f"{model.upper()} Rp {price:,} kemahalan (dari deskripsi)", 0
                 
-            # Tolak jika harga di bawah lantai waras
-            if price < min_floor:
-                return False, "HARGA_CURIGA_RUSAK", f"{model.upper()} Rp {price:,} di bawah harga lantai (Curiga Rusak/Kanibal)", 0
-                
-            # Lolos jika harga di bawah target kulak
-            if price <= max_snipe:
-                smart_score = learner.compute_steal_score(title, price, model, max_snipe)
-                return True, "STEAL_DEAL", f"Target {model.upper()} (Max Rp {max_snipe:,})", smart_score
-            else:
-                return False, "HARGA_KEMAHALAN", f"{model.upper()} Rp {price:,} di atas batas kulak Rp {max_snipe:,}", 0
-                
-    return False, "BUKAN_MODEL_TARGET", "Bukan VGA incaran bisnis", 0
+            base_score = learner.compute_steal_score(title + " " + desc, price, model, max_snipe)
+            base_score = min(100, max(0, base_score + tier_bonus))
+
+    d_low = desc.lower()
+    
+    # 3. Cek Red Flags (Minus, Artefak)
+    from config import STAGE2_RED_FLAGS, STAGE2_GREEN_FLAGS
+    for red in STAGE2_RED_FLAGS:
+        if red in d_low:
+            return False, "DIBLOKIR_STAGE2", f"Terdeteksi minus di deskripsi: '{red}'", 0
+            
+    # 4. Hitung Semantic Score (Green Flags)
+    score_bonus = 0
+    for green in STAGE2_GREEN_FLAGS:
+        if green in d_low:
+            score_bonus += 10
+            
+    final_score = min(100, base_score + score_bonus)
+    
+    # 5. Fuzzy Tier Detection
+    tier_name, tier_mult, tier_bonus = get_cooler_tier(desc)
+    tier_tag = f" [{tier_name}]" if tier_name != "A" else ""
+    
+    # 6. Finalisasi Tipe Deal
+    if is_unpriced_troll:
+        return True, "UNPRICED", f"Harga Troll FB {model.upper()}{tier_tag} (Cek Detail DM)", final_score
+        
+    return True, "STEAL_DEAL", f"Target {model.upper()}{tier_tag} (Lolos Stage 2)", final_score
+
+
+# ==============================================================================
+# DISCORD ALERT
+# ==============================================================================
 
 def prune_old_discord_alerts(days: int = 7):
     """Hapus otomatis pesan alert lama di Discord agar channel tetap bersih."""
@@ -177,10 +195,9 @@ def prune_old_discord_alerts(days: int = 7):
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    # Cari pesan > 7 hari
     c.execute("SELECT message_id FROM discord_alerts WHERE created_at < datetime('now', ?)", (f"-{days} days",))
     old_msgs = [r[0] for r in c.fetchall()]
-    
+
     base_wh = DISCORD_WEBHOOK_URL.split("?")[0]
     for msg_id in old_msgs:
         try:
@@ -197,8 +214,8 @@ def send_discord_alert(deal: dict, deal_type: str = "STEAL_DEAL", smart_score: i
     is_unpriced = deal_type == "UNPRICED"
     badge_discord = "⚠️ [TANYA HARGA / FREE]" if is_unpriced else f"💎 [STEAL DEAL • SKOR AI {smart_score}/100]"
     badge_console = "[TANYA HARGA / FREE]" if is_unpriced else f"[STEAL DEAL • SKOR {smart_score}/100]"
-    color = 16776960 if is_unpriced else 3066993  # Hijau Toska
-    
+    color = 16776960 if is_unpriced else 3066993
+
     source_name = deal["source"].upper().replace("_", " ")
     print(f"\n{badge_console} [{source_name}] {deal['price_raw']} - {deal['title']}")
     print(f"   Link: {deal['url']}")
@@ -224,7 +241,6 @@ def send_discord_alert(deal: dict, deal_type: str = "STEAL_DEAL", smart_score: i
     }
 
     try:
-        # Gunakan ?wait=true agar Discord mengembalikan message_id untuk auto-prune
         wh_url = f"{DISCORD_WEBHOOK_URL.split('?')[0]}?wait=true"
         req = urllib.request.Request(
             wh_url,
@@ -245,100 +261,135 @@ def send_discord_alert(deal: dict, deal_type: str = "STEAL_DEAL", smart_score: i
     except Exception as e:
         print(f"[-] Discord webhook error: {e}")
 
+
+# ==============================================================================
+# SNIPER ROUND — Core scan loop
+# ==============================================================================
+
 async def run_sniper_round():
     init_db()
-    queries = list(FLIPPING_TARGETS.keys())
     all_deals = []
 
-    print("\n" + "="*50)
-    print(f"[*] MEMULAI SNIPER VGA CUAN (Hanya VGA Fast Moving)")
-    print("="*50)
+    print("\n" + "=" * 50)
+    print(f"[*] MEMULAI SNIPER VGA CUAN (Spec: RTX 2060+ / RX 6600 XT+)")
+    print("=" * 50)
 
-    for q in queries:
-        print(f"\n[*] Scan Query: '{q}' (Concurrent Run)")
-        tasks = [
-            scrape_tokopedia_vga(query=q, min_price=1000000, max_price=5000000, max_items=15),
-            scrape_fb_marketplace(query=q, city="jakarta", min_price=0, max_price=5000000, days_since_listed=7, max_items=15),
-            scrape_toco_vga(query=q, min_price=1000000, max_price=5000000, max_items=15)
-        ]
-        
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        
-        if isinstance(results[0], list): all_deals.extend(results[0])
-        else: print(f"[-] Tokopedia error: {results[0]}")
+    manager = BrowserManager()
+    await manager.start()
+
+    try:
+        for q in SEARCH_QUERIES:
+            print(f"\n[*] Scan Query: '{q}' (Concurrent Run)")
             
-        if isinstance(results[1], list): all_deals.extend(results[1])
-        else: print(f"[-] FB error: {results[1]}")
+            ctx_tp, page_tp = await manager.new_context()
+            ctx_fb, page_fb = await manager.new_context(extra_http_headers={"Accept-Language": "id-ID"})
+            ctx_tc, page_tc = await manager.new_context()
+
+            tasks = [
+                scrape_tokopedia_vga(page_tp, query=q, min_price=1000000, max_price=6000000, max_items=15),
+                scrape_fb_marketplace(page_fb, query=q, city="jakarta", min_price=0, max_price=6000000, days_since_listed=7, max_items=15),
+                scrape_toco_vga(page_tc, query=q, min_price=1000000, max_price=6000000, max_items=15)
+            ]
+
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            await ctx_tp.close()
+            await ctx_fb.close()
+            await ctx_tc.close()
+
+            for i, (name, res) in enumerate(zip(["Tokopedia", "FB", "Toco"], results)):
+                if isinstance(res, list):
+                    all_deals.extend(res)
+                else:
+                    print(f"[-] {name} error: {res}")
+
+        from scrapers import fetch_item_description
+
+        # Evaluasi & Alert
+        new_alerts = 0
+        already_seen_count = 0
+        junk_blocked_count = 0
+        overprice_count = 0
+
+        ctx_s2, page_s2 = await manager.new_context()
+
+        for deal in all_deals:
+            url = deal["url"]
+            if is_deal_seen(url):
+                already_seen_count += 1
+                continue
+
+            save_deal(url, deal["title"], deal["price"], deal["source"])
+
+            should_alert, deal_type, reason, smart_score, needs_stage2 = evaluate_deal_stage1(
+                deal["title"], deal["price"], deal.get("source", "")
+            )
+
+            if needs_stage2:
+                print(f"[*] [Stage 2 Trigger] Fetch deskripsi: {deal['title']} ...")
+                desc = await fetch_item_description(page_s2, deal["url"])
+                should_alert, deal_type, reason, smart_score = evaluate_deal_stage2(deal, desc, smart_score)
+
+            # Rekam sampel ke self-learning memory
+            model = match_gpu_model(deal["title"])
+            if model:
+                learner.record_deal_sample(model, deal["price"], deal["source"], deal["title"], should_alert)
             
-        if isinstance(results[2], list): all_deals.extend(results[2])
-        else: print(f"[-] Toco error: {results[2]}")
+            # Suntik ke dictionary untuk dibawa ke Supabase
+            deal["deal_type"] = deal_type
+            deal["smart_score"] = smart_score
 
-    # Evaluasi & Alert
-    new_alerts = 0
-    already_seen_count = 0
-    junk_blocked_count = 0
-    overprice_count = 0
+            if should_alert:
+                send_discord_alert(deal, deal_type=deal_type, smart_score=smart_score)
+                new_alerts += 1
+                await asyncio.sleep(0.4)
+            else:
+                if "AMPAS" in deal_type or "DIBLOKIR" in deal_type or "MATOT" in deal_type:
+                    junk_blocked_count += 1
+                elif "KEMAHALAN" in deal_type:
+                    overprice_count += 1
 
-    for deal in all_deals:
-        url = deal["url"]
-        if is_deal_seen(url):
-            already_seen_count += 1
-            continue
+        await ctx_s2.close()
 
-        save_deal(url, deal["title"], deal["price"], deal["source"])
+    finally:
+        await manager.close()
 
-        should_alert, deal_type, reason, smart_score = evaluate_deal(deal["title"], deal["price"])
-        
-        # Rekam sampel data ke modul pembelajaran statistik (Self-Learning Memory)
-        model_matched = None
-        for m in FLIPPING_TARGETS:
-            if m in deal["title"].lower():
-                model_matched = m
-                break
-        if model_matched:
-            learner.record_deal_sample(model_matched, deal["price"], deal["source"], deal["title"], should_alert)
-
-        if should_alert:
-            send_discord_alert(deal, deal_type=deal_type, smart_score=smart_score)
-            new_alerts += 1
-            await asyncio.sleep(0.4)
-        else:
-            if "AMPAS" in deal_type or "DIBLOKIR" in deal_type or "RUSAK" in deal_type:
-                junk_blocked_count += 1
-            elif "KEMAHALAN" in deal_type:
-                overprice_count += 1
-
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print(f"[*] RINGKASAN PEMINDAIAN SNIPER:")
     print(f"[*] Total valid deals ditemukan: {len(all_deals)}")
     
-    # Generate Local HTML Dashboard
-    try:
-        from generate_dashboard import generate_dashboard
-        generate_dashboard()
-    except Exception as e:
-        print(f"[-] Dashboard gen error: {e}")
-    
+    # Hanya push deal yang lolos filter ampas
+    valid_deals_for_sync = [
+        d for d in all_deals 
+        if "AMPAS" not in d.get("deal_type", "") 
+        and "DIBLOKIR" not in d.get("deal_type", "") 
+        and "MATOT" not in d.get("deal_type", "")
+        and "PANCINGAN" not in d.get("deal_type", "")
+    ]
+
     # Sinkronisasi ke Supabase Cloud
     try:
-        sync_deals_to_supabase()
+        if valid_deals_for_sync:
+            sync_deals_to_supabase(valid_deals_for_sync)
     except Exception as e:
         print(f"[-] Supabase sync error: {e}")
-        
+
     # Auto-Prune alert Discord lama (> 7 hari)
     try:
         prune_old_discord_alerts(days=7)
     except Exception as e:
         print(f"[-] Discord prune error: {e}")
-        
+
     print(f"    - Listing lama dilewati: {already_seen_count}")
     print(f"    - Diblokir (VGA ampas/matot/dus): {junk_blocked_count}")
-    print(f"    - Dilewati (Harga kemahalan/gak ada margin): {overprice_count}")
+    print(f"    - Dilewati (Harga kemahalan): {overprice_count}")
     print(f"    - ALERT CUAN TERKIRIM KE DISCORD: {new_alerts}")
-    print("="*50)
+    print("=" * 50)
 
-from datetime import datetime
-from sync_supabase import SUPABASE_URL, SUPABASE_SERVICE_KEY
+
+# ==============================================================================
+# BOT REMOTE CONTROL (Supabase bot_commands)
+# ==============================================================================
 
 def get_remote_command() -> dict:
     try:
@@ -376,39 +427,63 @@ def update_bot_state(state: str, reset_command: bool = False):
     except Exception:
         pass
 
-async def main_loop(interval_minutes: int = 10):
-    print(f"[*] VGA Hunter cloud-controlled loop aktif (Cek tiap {interval_minutes} menit / kendali web)")
+_current_bot_state = "IDLE"
+
+async def heartbeat_worker():
+    """Background heartbeat: kirim ping ke Supabase tiap 20 detik."""
+    global _current_bot_state
     while True:
-        remote = get_remote_command()
-        cmd = remote.get("command", "RESUME")
-        
-        if cmd == "STOP":
-            print("[!] Menerima perintah STOP dari Web. Mematikan bot...")
-            update_bot_state("OFFLINE")
-            break
-            
-        if cmd == "PAUSE":
-            update_bot_state("PAUSED")
-            await asyncio.sleep(5)
-            continue
-            
-        update_bot_state("SCANNING", reset_command=(cmd == "SCAN_NOW"))
         try:
-            await run_sniper_round()
-        except Exception as e:
-            print(f"[-] Round error: {e}")
-            
-        update_bot_state("IDLE")
-        
-        # Sleep dengan respon instan jika ada perintah dari Web
-        total_seconds = interval_minutes * 60
-        elapsed = 0
-        while elapsed < total_seconds:
-            await asyncio.sleep(5)
-            elapsed += 5
-            check = get_remote_command()
-            if check.get("command") in ["SCAN_NOW", "PAUSE", "STOP"]:
+            update_bot_state(_current_bot_state)
+        except Exception:
+            pass
+        await asyncio.sleep(20)
+
+async def main_loop(interval_minutes: int = 10):
+    global _current_bot_state
+    print(f"[*] VGA Hunter cloud-controlled loop aktif (Cek tiap {interval_minutes} menit / kendali web)")
+
+    asyncio.create_task(heartbeat_worker())
+
+    while True:
+        try:
+            remote = get_remote_command()
+            cmd = remote.get("command", "RESUME")
+
+            if cmd == "STOP":
+                print("[!] Menerima perintah STOP dari Web. Mematikan bot...")
+                _current_bot_state = "OFFLINE"
+                update_bot_state("OFFLINE")
                 break
+
+            if cmd == "PAUSE":
+                _current_bot_state = "PAUSED"
+                update_bot_state("PAUSED")
+                await asyncio.sleep(5)
+                continue
+
+            _current_bot_state = "SCANNING"
+            update_bot_state("SCANNING", reset_command=(cmd == "SCAN_NOW"))
+            try:
+                await run_sniper_round()
+            except Exception as e:
+                print(f"[-] Round error: {e}")
+
+            _current_bot_state = "IDLE"
+            update_bot_state("IDLE")
+
+            # Sleep dengan respon instan jika ada perintah dari Web
+            total_seconds = interval_minutes * 60
+            elapsed = 0
+            while elapsed < total_seconds:
+                await asyncio.sleep(5)
+                elapsed += 5
+                check = get_remote_command()
+                if check.get("command") in ["SCAN_NOW", "PAUSE", "STOP"]:
+                    break
+        except Exception as err:
+            print(f"[!] Loop exception: {err}. Melanjutkan dalam 10 detik...")
+            await asyncio.sleep(10)
 
 if __name__ == "__main__":
     if "--reset-db" in sys.argv:
@@ -417,7 +492,7 @@ if __name__ == "__main__":
         conn.commit()
         conn.close()
         print("[*] Database seen_deals.db di-reset!")
-        
+
     try:
         if "--once" in sys.argv:
             asyncio.run(run_sniper_round())

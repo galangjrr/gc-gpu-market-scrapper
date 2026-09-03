@@ -234,10 +234,36 @@
     let onlyStealDeals = false;
 
     const priceBaselines = {
-      "RTX 4060": 4300000, "RTX 3070": 4300000, "RTX 3060 TI": 3800000,
-      "RTX 3060": 3400000, "RTX 3050": 2300000, "RTX 2060 SUPER": 2400000,
-      "RTX 2060": 2100000, "GTX 1660 SUPER": 1650000, "RX 7600": 4200000,
-      "RX 6700 XT": 3800000, "RX 6600 XT": 2800000, "RX 6600": 2400000
+      // RTX 40 Series
+      "RTX 4090": 26000000, "RTX 4080 SUPER": 15500000, "RTX 4080": 14000000,
+      "RTX 4070 TI SUPER": 12500000, "RTX 4070 TI": 10500000, "RTX 4070 SUPER": 9200000,
+      "RTX 4070": 8000000, "RTX 4060 TI": 5300000, "RTX 4060": 4300000,
+
+      // RTX 30 Series
+      "RTX 3090 TI": 13500000, "RTX 3090": 10500000, "RTX 3080 TI": 8000000,
+      "RTX 3080": 6500000, "RTX 3070 TI": 5000000, "RTX 3070": 4300000,
+      "RTX 3060 TI": 3800000, "RTX 3060": 3400000, "RTX 3050": 2300000,
+
+      // RTX 20 Series
+      "RTX 2080 TI": 4400000, "RTX 2080 SUPER": 3500000, "RTX 2080": 3000000,
+      "RTX 2070 SUPER": 3100000, "RTX 2070": 2600000, "RTX 2060 SUPER": 2400000,
+      "RTX 2060": 2000000,
+
+      // GTX Series
+      "GTX 1080 TI": 2400000, "GTX 1080": 1700000, "GTX 1070 TI": 1600000,
+      "GTX 1070": 1400000, "GTX 1660 SUPER": 1700000, "GTX 1660 TI": 1600000,
+      "GTX 1660": 1400000, "GTX 1060": 1200000,
+
+      // AMD RX Series
+      "RX 7900 XTX": 13000000, "RX 7900 XT": 10500000, "RX 7800 XT": 7800000,
+      "RX 7700 XT": 6500000, "RX 7600 XT": 4800000, "RX 7600": 4000000,
+      "RX 6900 XT": 7200000, "RX 6800 XT": 5800000, "RX 6800": 4900000,
+      "RX 6750 XT": 4500000, "RX 6700 XT": 3900000, "RX 6650 XT": 3100000,
+      "RX 6600 XT": 2800000, "RX 6600": 2400000, "RX 5700 XT": 2100000,
+      "RX 5700": 1800000, "RX 5600 XT": 1600000,
+
+      // Intel Arc
+      "ARC B580": 4200000, "ARC A770": 4000000, "ARC A750": 3000000, "ARC A580": 2600000
     };
 
     try {
@@ -252,12 +278,24 @@
         const { data, error } = await dbClient
           .from('vga_deals')
           .select('*')
+          .neq('action_decision', 'trashed')
           .order('created_at', { ascending: false })
           .limit(200);
 
         if (error) throw error;
         if (data) {
-          allDeals = data;
+          const junkKeys = [
+            "pc gaming", "cpu gaming", "komputer", "laptop", "notebook",
+            "pc rakitan", "rakitan pc", "fullset pc", "pc fullset", "full set pc",
+            "1 set pc", "satu set pc", "set pc", "rig gaming", "mining rig",
+            "gaming rig", "fullset ryzen", "fullset intel", "paket pc", "pc render",
+            "aisurix", "mllse", "peladn", "soyo", "rx 580", "rx 570"
+          ];
+          allDeals = data.filter(d => {
+            if (!d.title || !d.price || d.price < 800000) return false;
+            const tLow = d.title.toLowerCase();
+            return !junkKeys.some(k => tLow.includes(k));
+          });
           updateStatsAndPillCounts();
           renderListings();
         }
@@ -311,31 +349,59 @@
       }
     }
 
-    function updateBadgeState(state) {
+    function updateBadgeState(state, lastPing) {
       const badge = document.getElementById('remoteStateBadge');
-      if (!badge) return;
-      badge.innerText = state;
+      if (badge) {
+        badge.innerText = state;
+        if (state === 'SCANNING') {
+          badge.className = 'text-[9px] px-2 py-0.2 bg-blue-500/20 text-blue-300 rounded font-bold border border-blue-500/30 animate-pulse';
+        } else if (state === 'PAUSED') {
+          badge.className = 'text-[9px] px-2 py-0.2 bg-amber-500/20 text-amber-300 rounded font-bold border border-amber-500/30';
+        } else if (state === 'OFFLINE') {
+          badge.className = 'text-[9px] px-2 py-0.2 bg-red-500/20 text-red-300 rounded font-bold border border-red-500/30';
+        } else {
+          badge.className = 'text-[9px] px-2 py-0.2 bg-emerald-500/20 text-emerald-300 rounded font-bold border border-emerald-500/30';
+        }
+      }
+
+      // Update Navbar Bot Status Pill langsung dari status bot_commands & last_ping
+      const pill = document.getElementById('botStatusPill');
+      const dot = document.getElementById('botStatusDot');
+      const text = document.getElementById('botStatusText');
+      if (!pill || !dot || !text) return;
+
+      const pingSec = lastPing ? Math.round((Date.now() - new Date(lastPing).getTime()) / 1000) : 9999;
+      const isAlive = pingSec < 120; // Heartbeat aktif dalam 2 menit
+
       if (state === 'SCANNING') {
-        badge.className = 'text-[9px] px-2 py-0.2 bg-blue-500/20 text-blue-300 rounded font-bold border border-blue-500/30 animate-pulse';
+        pill.className = 'flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-600 px-2.5 py-1 rounded-lg text-[11px] font-bold';
+        dot.className = 'w-2 h-2 rounded-full bg-blue-500 animate-ping flex-shrink-0';
+        text.innerText = 'Bot PC Memindai...';
       } else if (state === 'PAUSED') {
-        badge.className = 'text-[9px] px-2 py-0.2 bg-amber-500/20 text-amber-300 rounded font-bold border border-amber-500/30';
-      } else if (state === 'OFFLINE') {
-        badge.className = 'text-[9px] px-2 py-0.2 bg-red-500/20 text-red-300 rounded font-bold border border-red-500/30';
+        pill.className = 'flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-600 px-2.5 py-1 rounded-lg text-[11px] font-bold';
+        dot.className = 'w-2 h-2 rounded-full bg-amber-500 flex-shrink-0';
+        text.innerText = 'Bot PC Dipause';
+      } else if ((state === 'IDLE' || state === 'RESUME') && isAlive) {
+        pill.className = 'flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-[#03AC0E] px-2.5 py-1 rounded-lg text-[11px] font-bold';
+        dot.className = 'w-2 h-2 rounded-full bg-[#03AC0E] animate-pulse flex-shrink-0';
+        text.innerText = 'Bot PC Standby (Aktif)';
       } else {
-        badge.className = 'text-[9px] px-2 py-0.2 bg-emerald-500/20 text-emerald-300 rounded font-bold border border-emerald-500/30';
+        pill.className = 'flex items-center gap-1.5 bg-slate-100 border border-slate-300 text-slate-600 px-2.5 py-1 rounded-lg text-[11px] font-bold';
+        dot.className = 'w-2 h-2 rounded-full bg-slate-400 flex-shrink-0';
+        text.innerText = 'Bot PC Offline';
       }
     }
 
     if (dbClient) {
-      dbClient.from('bot_commands').select('state').eq('id', 'main').single().then(({ data }) => {
-        if (data && data.state) updateBadgeState(data.state);
+      dbClient.from('bot_commands').select('state, last_ping').eq('id', 'main').single().then(({ data }) => {
+        if (data && data.state) updateBadgeState(data.state, data.last_ping);
       });
 
       dbClient
         .channel('public:bot_commands')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_commands' }, payload => {
           if (payload.new && payload.new.state) {
-            updateBadgeState(payload.new.state);
+            updateBadgeState(payload.new.state, payload.new.last_ping);
           }
         })
         .subscribe();
@@ -348,6 +414,13 @@
         .subscribe();
 
       setInterval(loadData, 30000);
+      
+      // Auto-refresh bot status setiap 15 detik
+      setInterval(() => {
+        dbClient.from('bot_commands').select('state, last_ping').eq('id', 'main').single().then(({ data }) => {
+          if (data && data.state) updateBadgeState(data.state, data.last_ping);
+        });
+      }, 15000);
     }
 
     function updateStatsAndPillCounts() {
@@ -365,31 +438,6 @@
       document.getElementById('count-tokped').innerText = tokpedCount;
       document.getElementById('count-fb').innerText = fbCount;
       document.getElementById('count-toco').innerText = tocoCount;
-
-      // DETEKSI STATUS BOT PC DARI WAKTU DATA TERAKHIR
-      if (allDeals.length > 0) {
-        const latestTime = new Date(allDeals[0].created_at).getTime();
-        const now = Date.now();
-        const diffMinutes = Math.round((now - latestTime) / (1000 * 60));
-        
-        const pill = document.getElementById('botStatusPill');
-        const dot = document.getElementById('botStatusDot');
-        const text = document.getElementById('botStatusText');
-
-        if (diffMinutes <= 20) {
-          pill.className = 'flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-[#03AC0E] px-2.5 py-1 rounded-lg text-[11px] font-bold';
-          dot.className = 'w-2 h-2 rounded-full bg-[#03AC0E] animate-ping flex-shrink-0';
-          text.innerText = `Bot PC Aktif (${diffMinutes}m lalu)`;
-        } else if (diffMinutes <= 60) {
-          pill.className = 'flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-600 px-2.5 py-1 rounded-lg text-[11px] font-bold';
-          dot.className = 'w-2 h-2 rounded-full bg-amber-500 flex-shrink-0';
-          text.innerText = `Bot PC Standby (${diffMinutes}m lalu)`;
-        } else {
-          pill.className = 'flex items-center gap-1.5 bg-slate-100 border border-slate-300 text-slate-600 px-2.5 py-1 rounded-lg text-[11px] font-bold';
-          dot.className = 'w-2 h-2 rounded-full bg-slate-400 flex-shrink-0';
-          text.innerText = 'Bot PC Offline';
-        }
-      }
     }
 
     function setPlatform(platform) {
@@ -425,17 +473,38 @@
     }
 
     function extractSpecs(title) {
-      const t = title.toLowerCase();
+      const t = title.toLowerCase().replace(/\s+/g, ' ');
+
+      // 1. Ekstraksi Pola GPU Dinamis (Prefix + Nomor Seri + Suffix)
+      const rxMatch = t.match(/\b(rtx|gtx|rx|arc)?\s*([1-9]\d{2,3}|a\d{3}|b\d{3})\s*(ti|super|xtx|xt|s)?\b/i);
       let matchedModel = null;
-      for (const m of Object.keys(priceBaselines)) {
-        if (t.includes(m.toLowerCase())) {
-          matchedModel = m; break;
+
+      if (rxMatch) {
+        let [_, prefix, num, suffix] = rxMatch;
+        prefix = (prefix || '').toUpperCase();
+        num = num.toUpperCase();
+        suffix = (suffix || '').toUpperCase();
+        if (suffix === 'S') suffix = 'SUPER';
+
+        if (!prefix) {
+          const n = parseInt(num);
+          if ((n >= 2000 && n <= 5090) || (n >= 1000 && n <= 1660)) prefix = n >= 2000 ? 'RTX' : 'GTX';
+          else if (n >= 5000 && n <= 7900) prefix = 'RX';
+          else prefix = 'GPU';
+        }
+        matchedModel = [prefix, num, suffix].filter(Boolean).join(' ');
+      } else {
+        const sortedModels = Object.keys(priceBaselines).sort((a, b) => b.length - a.length);
+        for (const m of sortedModels) {
+          if (t.includes(m.toLowerCase())) {
+            matchedModel = m; break;
+          }
         }
       }
       
       const premiumBrands = ["rog", "strix", "suprim", "aorus", "vulcan", "neptune", "gamerock", "amp holo", "ichill", "hof", "taichi", "phantom", "nitro", "toxic", "red devil"];
-      const tripleBrands = ["tuf", "trio", "gaming x trio", "trinity", "steel legend", "hellhound", "merc", "qick", "3 fan", "triple fan"];
-      const singleBrands = ["aero itx", "single fan", "itx", "mini"];
+      const tripleBrands = ["tuf", "trio", "gaming x trio", "trinity", "steel legend", "hellhound", "merc", "qick", "windforce 3x", "gaming oc", "3 fan", "triple fan", "3fan"];
+      const singleBrands = ["aero itx", "single fan", "1 fan", "itx", "mini", "stormx", "phoenix"];
       
       let tier = "dual";
       let tag = "Standard / Dual Fan";
@@ -471,7 +540,21 @@
         return;
       }
 
-      const baseMed = priceBaselines[specs.model] || 3000000;
+      // Ambil median dinamis dari database Supabase riil
+      const matchingDeals = allDeals.filter(d => 
+        d.title.toLowerCase().includes(specs.model.toLowerCase()) && d.price >= 800000
+      );
+      
+      let baseMed = 0;
+      let priceSource = 'Standar Baseline';
+      if (matchingDeals.length >= 2) {
+        const sortedPrices = matchingDeals.map(d => d.price).sort((a, b) => a - b);
+        baseMed = sortedPrices[Math.floor(sortedPrices.length / 2)];
+        priceSource = `Live Supabase (${matchingDeals.length} unit)`;
+      } else {
+        baseMed = priceBaselines[specs.model] || 3000000;
+      }
+
       let multiplier = specs.tier === 'premium' ? 1.15 : specs.tier === 'triple' ? 1.08 : specs.tier === 'single' ? 0.94 : 1.0;
       
       const med = Math.round(baseMed * multiplier);
@@ -490,6 +573,7 @@
             </div>
             <div class="text-slate-600 font-bold mb-0.5">Terdeteksi: ${specs.model} | ${specs.tag}</div>
             <div class="text-slate-600 leading-tight">Harga Rp ${price.toLocaleString('id-ID')} di bawah max kulak (Rp ${maxKulak.toLocaleString('id-ID')}).</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Basis data: ${priceSource}</div>
           </div>
           <div class="text-right">
             <div class="text-[10px] text-slate-500 font-bold">Potensi Cuan</div>
@@ -506,6 +590,7 @@
             </div>
             <div class="text-slate-600 font-bold mb-0.5">Terdeteksi: ${specs.model} | ${specs.tag}</div>
             <div class="text-slate-600 leading-tight">Nego turun Rp ${diff.toLocaleString('id-ID')} lagi. (Pasaran: Rp ${med.toLocaleString('id-ID')})</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Basis data: ${priceSource}</div>
           </div>
           <div class="text-right">
             <div class="text-[10px] text-slate-500 font-bold">Cuan Tipis</div>
@@ -521,8 +606,33 @@
             </div>
             <div class="text-slate-600 font-bold mb-0.5">Terdeteksi: ${specs.model} | ${specs.tag}</div>
             <div class="text-slate-600 leading-tight">Harga di atas pasaran (Rp ${med.toLocaleString('id-ID')}). Skip.</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">Basis data: ${priceSource}</div>
           </div>
         `;
+      }
+    }
+
+    async function trashDeal(id) {
+      if(!confirm("Yakin hapus sampah ini permanen dari radar?")) return;
+      
+      try {
+        const resp = await fetch(`${SUPABASE_URL}/rest/v1/vga_deals?id=eq.${id}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ action_decision: 'trashed' })
+        });
+        if(resp.ok) {
+           allDeals = allDeals.filter(d => d.id !== id);
+           renderListings();
+        } else {
+           alert("Gagal menghapus deal");
+        }
+      } catch (err) {
+        console.error(err);
       }
     }
 
@@ -532,6 +642,7 @@
       grid.innerHTML = '';
 
       const filtered = allDeals.filter(d => {
+        if (d.action_decision === 'trashed') return false; // Sembunyikan item sampah
         if (onlyStealDeals && !d.is_steal_deal) return false;
         const matchQ = (d.title && d.title.toLowerCase().includes(q)) || (d.location && d.location.toLowerCase().includes(q)) || (d.brand && d.brand.toLowerCase().includes(q));
         const matchP = selectedPlatform === 'ALL' || d.platform === selectedPlatform;
@@ -626,9 +737,14 @@
                   <div class="text-[9px] text-slate-400 font-semibold uppercase">Harga</div>
                   <div class="font-extrabold text-sm text-[#03AC0E]">${d.price_raw || 'Rp ' + Number(d.price).toLocaleString('id-ID')}</div>
                 </div>
-                <a href="${d.url}" target="_blank" class="px-3 py-1.5 bg-[#03AC0E] hover:bg-[#028A0B] text-white text-xs font-bold rounded-lg transition shadow-sm flex items-center gap-1">
-                  <span>Beli/Chat</span> <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                </a>
+                <div class="flex gap-2">
+                  <button onclick="trashDeal('${d.id}')" class="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-600 text-xs font-bold rounded-lg transition shadow-sm flex items-center" title="Buang Sampah">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                  <a href="${d.url}" target="_blank" class="px-3 py-1.5 bg-[#03AC0E] hover:bg-[#028A0B] text-white text-xs font-bold rounded-lg transition shadow-sm flex items-center gap-1">
+                    <span>Beli</span> <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                  </a>
+                </div>
               </div>
             </div>
 
