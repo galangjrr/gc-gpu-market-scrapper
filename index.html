@@ -159,6 +159,40 @@
       </div>
     </details>
 
+    <!-- PENCATAT PROFIT -->
+    <details class="card-tokped p-4 sm:p-5 border-l-4 border-l-blue-500 group mt-4">
+      <summary class="cursor-pointer font-bold text-xs sm:text-sm text-slate-800 flex items-center justify-between list-none">
+        <div class="flex items-center gap-2">
+          <span class="p-1 bg-blue-50 text-blue-600 rounded text-xs"><i class="fa-solid fa-money-bill-wave"></i></span>
+          <span class="font-extrabold">Form Catat Profit & Kirim ke Discord (Klik Buka)</span>
+        </div>
+        <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform group-open:rotate-180"></i>
+      </summary>
+      
+      <div class="mt-4 pt-3 border-t border-slate-100 space-y-3">
+        <p class="text-[11px] text-slate-500">Adik/Admin tinggal isi angka di bawah, sistem yang hitung untung dan susun laporannya ke channel 💰-catatan-untung.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
+          <div class="sm:col-span-5">
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Nama VGA Laku</label>
+            <input type="text" id="profitName" placeholder="Cth: RX 6600 XT" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div class="sm:col-span-3">
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Modal Beli (Rp)</label>
+            <input type="number" id="profitBuy" placeholder="Cth: 2500000" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div class="sm:col-span-3">
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Terjual (Rp)</label>
+            <input type="number" id="profitSell" placeholder="Cth: 3100000" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div class="sm:col-span-1">
+            <button onclick="sendProfitReport()" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-lg transition shadow-sm flex justify-center items-center" title="Kirim Laporan">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </details>
+
     <!-- LISTINGS FILTER SECTION WITH HORIZONTAL PLATFORM TABS -->
     <section class="card-tokped p-3.5 sm:p-6 space-y-4">
       
@@ -523,6 +557,39 @@
         }
       }
       return { model: matchedModel, tier, tag };
+    }
+
+    async function sendProfitReport() {
+      const vgaName = document.getElementById('profitName').value;
+      const buyPrice = parseInt(document.getElementById('profitBuy').value);
+      const sellPrice = parseInt(document.getElementById('profitSell').value);
+      
+      if (!vgaName || !buyPrice || !sellPrice) {
+        alert("Isi semua kolom dulu!"); return;
+      }
+      
+      const profit = sellPrice - buyPrice;
+      const webhookUrl = "https://discord.com/api/webhooks/1544396122817167523/Ior0SHvrYqGkuCpzU1zz0beB8YJGIzxFeeuHGvR67Hp0HqyCRLMBHT6npGmMWfldKxjK";
+      
+      const content = `💰 **LAPORAN TUTUP BUKU** 💰\n🛒 **VGA:** ${vgaName}\n📉 **Modal Beli:** Rp ${buyPrice.toLocaleString('id-ID')}\n📈 **Laku Terjual:** Rp ${sellPrice.toLocaleString('id-ID')}\n✅ **CUAN BERSIH:** Rp ${profit.toLocaleString('id-ID')}`;
+      
+      try {
+        const res = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: content })
+        });
+        if (res.ok) {
+          alert("Laporan sukses dikirim ke Discord!");
+          document.getElementById('profitName').value = '';
+          document.getElementById('profitBuy').value = '';
+          document.getElementById('profitSell').value = '';
+        } else {
+          alert("Gagal kirim ke Discord.");
+        }
+      } catch (e) {
+        alert("Error kirim data.");
+      }
     }
 
     function checkViability() {
