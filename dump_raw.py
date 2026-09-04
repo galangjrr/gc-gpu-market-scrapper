@@ -50,7 +50,7 @@ def dump_raw_to_supabase(deals: list):
     if not rows:
         return
 
-    api_url = f"{SUPABASE_URL}/rest/v1/raw_scrapes"
+    api_url = f"{SUPABASE_URL}/rest/v1/raw_scrapes?on_conflict=url"
     headers = {
         "apikey": SUPABASE_SERVICE_KEY,
         "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
