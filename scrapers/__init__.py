@@ -24,19 +24,13 @@ class BrowserManager:
         self._browser = None
 
     async def start(self):
-        """Launch 1 Chromium headless instance."""
+        """Launch 1 Firefox headless instance to bypass anti-bot."""
         self._playwright = await async_playwright().start()
-        self._browser = await self._playwright.chromium.launch(
+        self._browser = await self._playwright.firefox.launch(
             headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-gpu",
-                "--disable-blink-features=AutomationControlled",
-                "--blink-settings=imagesEnabled=false",
-            ],
+            args=[],
         )
-        print("[*] Browser Chromium shared instance launched")
+        print("[*] Browser Firefox shared instance launched")
 
     async def new_context(self, **kwargs):
         """

@@ -127,6 +127,47 @@
       </div>
     </section>
 
+    <!-- CONFIGURATION PANEL -->
+    <details class="card-tokped p-4 sm:p-5 border-l-4 border-l-purple-500 group mb-4">
+      <summary class="cursor-pointer font-bold text-xs sm:text-sm text-slate-800 flex items-center justify-between list-none">
+        <div class="flex items-center gap-2">
+          <span class="p-1 bg-purple-50 text-purple-600 rounded text-xs"><i class="fa-solid fa-sliders"></i></span>
+          <span class="font-extrabold">Pengaturan Target Bot (Live Config)</span>
+        </div>
+        <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform group-open:rotate-180"></i>
+      </summary>
+      
+      <div class="mt-4 pt-3 border-t border-slate-100 space-y-3">
+        <p class="text-[11px] text-slate-500">Ubah platform dan keyword target. Config langsung aktif di iterasi berikutnya tanpa restart PC.</p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
+          <div class="sm:col-span-5">
+            <label class="block text-[11px] font-bold text-slate-600 mb-2">Target Platform</label>
+            <div class="flex gap-3" id="configPlatforms">
+               <label class="flex items-center gap-1.5 text-xs text-slate-700 font-semibold cursor-pointer">
+                 <input type="checkbox" id="chkTokopedia" value="tokopedia" class="w-4 h-4 text-purple-600 bg-slate-100 border-slate-300 rounded focus:ring-purple-500"> Tokopedia
+               </label>
+               <label class="flex items-center gap-1.5 text-xs text-slate-700 font-semibold cursor-pointer">
+                 <input type="checkbox" id="chkFacebook" value="facebook" class="w-4 h-4 text-purple-600 bg-slate-100 border-slate-300 rounded focus:ring-purple-500"> Facebook
+               </label>
+               <label class="flex items-center gap-1.5 text-xs text-slate-700 font-semibold cursor-pointer">
+                 <input type="checkbox" id="chkToco" value="toco" class="w-4 h-4 text-purple-600 bg-slate-100 border-slate-300 rounded focus:ring-purple-500"> Toco.id
+               </label>
+            </div>
+          </div>
+          <div class="sm:col-span-5">
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">Target Queries (Pisahkan dengan koma)</label>
+            <textarea id="configQueries" rows="2" placeholder="Kosong = pakai default (vga rtx 3060, dll)&#10;Atau isi manual: AMD sapphire nitro+ rx 6600 xt, rtx 3060" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-[11px] font-semibold text-slate-800 focus:ring-2 focus:ring-purple-500 focus:outline-none"></textarea>
+          </div>
+          <div class="sm:col-span-2 flex items-end h-full pt-4">
+            <button onclick="saveBotConfig()" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs sm:text-sm rounded-lg transition shadow-sm flex justify-center items-center gap-2">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </details>
+
     <!-- DECISION CALCULATOR -->
     <details class="card-tokped p-4 sm:p-5 border-l-4 border-l-[#03AC0E] group">
       <summary class="cursor-pointer font-bold text-xs sm:text-sm text-slate-800 flex items-center justify-between list-none">
@@ -427,8 +468,15 @@
     }
 
     if (dbClient) {
-      dbClient.from('bot_commands').select('state, last_ping').eq('id', 'main').single().then(({ data }) => {
+      dbClient.from('bot_commands').select('state, last_ping, custom_queries, target_platforms').eq('id', 'main').single().then(({ data }) => {
         if (data && data.state) updateBadgeState(data.state, data.last_ping);
+        if (data) {
+          const plats = data.target_platforms || ['tokopedia', 'facebook', 'toco'];
+          document.getElementById('chkTokopedia').checked = plats.includes('tokopedia');
+          document.getElementById('chkFacebook').checked = plats.includes('facebook');
+          document.getElementById('chkToco').checked = plats.includes('toco');
+          document.getElementById('configQueries').value = data.custom_queries ? data.custom_queries.join(', ') : '';
+        }
       });
 
       dbClient
@@ -436,6 +484,16 @@
         .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_commands' }, payload => {
           if (payload.new && payload.new.state) {
             updateBadgeState(payload.new.state, payload.new.last_ping);
+            
+            if (payload.new.target_platforms) {
+               const plats = payload.new.target_platforms;
+               document.getElementById('chkTokopedia').checked = plats.includes('tokopedia');
+               document.getElementById('chkFacebook').checked = plats.includes('facebook');
+               document.getElementById('chkToco').checked = plats.includes('toco');
+            }
+            if (payload.new.custom_queries !== undefined) {
+               document.getElementById('configQueries').value = payload.new.custom_queries ? payload.new.custom_queries.join(', ') : '';
+            }
           }
         })
         .subscribe();
@@ -455,6 +513,36 @@
           if (data && data.state) updateBadgeState(data.state, data.last_ping);
         });
       }, 15000);
+    }
+
+    async function saveBotConfig() {
+       const chks = ['chkTokopedia', 'chkFacebook', 'chkToco'].map(id => document.getElementById(id));
+       const plats = chks.filter(c => c.checked).map(c => c.value);
+       
+       let queryText = document.getElementById('configQueries').value.trim();
+       let queries = null;
+       if (queryText) {
+          queries = queryText.split(',').map(q => q.trim()).filter(q => q.length > 0);
+       }
+       
+       try {
+          const btn = document.querySelector('button[onclick="saveBotConfig()"]');
+          const oldHtml = btn.innerHTML;
+          btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+          
+          const { error } = await dbClient.from('bot_commands').upsert({ 
+             id: 'main', 
+             target_platforms: plats.length > 0 ? plats : null,
+             custom_queries: queries,
+             updated_at: new Date().toISOString()
+          });
+          
+          btn.innerHTML = oldHtml;
+          if (error) throw error;
+          alert("Config tersimpan! Akan aktif di iterasi scan bot berikutnya.");
+       } catch(e) {
+          alert("Gagal simpan config: " + e.message);
+       }
     }
 
     function updateStatsAndPillCounts() {

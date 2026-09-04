@@ -124,6 +124,8 @@ def sync_deals_to_supabase(deals_input: list = None):
             if resp.status in [200, 201]:
                 print(f"[+] Berhasil sinkronisasi {len(all_deals)} listing ke Supabase Cloud!")
     except Exception as e:
+        if hasattr(e, "read"):
+            print(f"[-] Supabase 500 Details: {e.read().decode('utf-8')}")
         print(f"[-] Gagal sinkronisasi ke Supabase: {e}")
 
 

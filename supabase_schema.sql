@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS public.bot_commands (
     id TEXT PRIMARY KEY DEFAULT 'main',
     command TEXT DEFAULT 'RESUME', -- SCAN_NOW, PAUSE, RESUME, STOP
     state TEXT DEFAULT 'IDLE',      -- SCANNING, PAUSED, IDLE, OFFLINE
+    custom_queries JSONB DEFAULT NULL,
+    target_platforms JSONB DEFAULT NULL,
     last_ping TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );

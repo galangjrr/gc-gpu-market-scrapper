@@ -266,9 +266,12 @@ def send_discord_alert(deal: dict, deal_type: str = "STEAL_DEAL", smart_score: i
 # SNIPER ROUND — Core scan loop
 # ==============================================================================
 
-async def run_sniper_round():
+async def run_sniper_round(custom_queries: list = None, target_platforms: list = None):
     init_db()
     all_deals = []
+    
+    active_queries = custom_queries if custom_queries else SEARCH_QUERIES
+    active_plats = [p.lower() for p in target_platforms] if target_platforms else ["tokopedia", "facebook", "toco"]
 
     print("\n" + "=" * 50)
     print(f"[*] MEMULAI SNIPER VGA CUAN (Spec: RTX 2060+ / RX 6600 XT+)")
@@ -278,26 +281,37 @@ async def run_sniper_round():
     await manager.start()
 
     try:
-        for q in SEARCH_QUERIES:
+        for q in active_queries:
             print(f"\n[*] Scan Query: '{q}' (Concurrent Run)")
             
-            ctx_tp, page_tp = await manager.new_context()
-            ctx_fb, page_fb = await manager.new_context(extra_http_headers={"Accept-Language": "id-ID"})
-            ctx_tc, page_tc = await manager.new_context()
+            tasks = []
+            contexts = []
+            platform_names = []
 
-            tasks = [
-                scrape_tokopedia_vga(page_tp, query=q, min_price=1000000, max_price=6000000, max_items=15),
-                scrape_fb_marketplace(page_fb, query=q, city="jakarta", min_price=0, max_price=6000000, days_since_listed=7, max_items=15),
-                scrape_toco_vga(page_tc, query=q, min_price=1000000, max_price=6000000, max_items=15)
-            ]
+            if "tokopedia" in active_plats:
+                ctx, page = await manager.new_context()
+                contexts.append(ctx)
+                tasks.append(scrape_tokopedia_vga(page, query=q, min_price=1000000, max_price=6000000, max_items=15))
+                platform_names.append("Tokopedia")
+
+            if "facebook" in active_plats:
+                ctx, page = await manager.new_context(extra_http_headers={"Accept-Language": "id-ID"})
+                contexts.append(ctx)
+                tasks.append(scrape_fb_marketplace(page, query=q, city="jakarta", min_price=0, max_price=6000000, days_since_listed=7, max_items=15))
+                platform_names.append("FB")
+
+            if "toco" in active_plats:
+                ctx, page = await manager.new_context()
+                contexts.append(ctx)
+                tasks.append(scrape_toco_vga(page, query=q, min_price=1000000, max_price=6000000, max_items=15))
+                platform_names.append("Toco")
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
-            await ctx_tp.close()
-            await ctx_fb.close()
-            await ctx_tc.close()
+            for ctx in contexts:
+                await ctx.close()
 
-            for i, (name, res) in enumerate(zip(["Tokopedia", "FB", "Toco"], results)):
+            for i, (name, res) in enumerate(zip(platform_names, results)):
                 if isinstance(res, list):
                     all_deals.extend(res)
                 else:
@@ -394,7 +408,7 @@ async def run_sniper_round():
 def get_remote_command() -> dict:
     try:
         req = urllib.request.Request(
-            f"{SUPABASE_URL}/rest/v1/bot_commands?id=eq.main&select=command,state",
+            f"{SUPABASE_URL}/rest/v1/bot_commands?id=eq.main&select=command,state,custom_queries,target_platforms",
             headers={
                 "apikey": SUPABASE_SERVICE_KEY,
                 "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"
@@ -465,7 +479,9 @@ async def main_loop(interval_minutes: int = 10):
             _current_bot_state = "SCANNING"
             update_bot_state("SCANNING", reset_command=(cmd == "SCAN_NOW"))
             try:
-                await run_sniper_round()
+                c_queries = remote.get("custom_queries")
+                c_plats = remote.get("target_platforms")
+                await run_sniper_round(custom_queries=c_queries, target_platforms=c_plats)
             except Exception as e:
                 print(f"[-] Round error: {e}")
 
