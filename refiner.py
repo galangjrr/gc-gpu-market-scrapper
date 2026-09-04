@@ -282,11 +282,16 @@ def run_refiner(batch_size: int = 50):
             gold_rows.append(result)
             approved_ids.append(raw["id"])
 
-    # Push ke gold_deals
+    # Push ke gold_deals (Deduplicate deal_hash di memori batch agar tidak error 21000 di Postgres)
     if gold_rows:
+        unique_gold = {}
+        for g in gold_rows:
+            unique_gold[g["deal_hash"]] = g
+        deduped_rows = list(unique_gold.values())
+
         try:
-            _supabase_post("gold_deals?on_conflict=deal_hash", gold_rows)
-            print(f"[+] {len(gold_rows)} listing -> gold_deals")
+            _supabase_post("gold_deals?on_conflict=deal_hash", deduped_rows)
+            print(f"[+] {len(deduped_rows)} listing -> gold_deals (sukses deduplikasi)")
         except Exception as e:
             if hasattr(e, "read"):
                 print(f"[-] Gold push detail: {e.read().decode('utf-8')[:300]}")
