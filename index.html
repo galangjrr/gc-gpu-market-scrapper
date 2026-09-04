@@ -351,26 +351,17 @@
       if (!dbClient) return;
       try {
         const { data, error } = await dbClient
-          .from('vga_deals')
+          .from('gold_deals')
           .select('*')
           .neq('action_decision', 'trashed')
+          .in('gold_status', ['APPROVED', 'WARNING_FLAW'])
           .order('created_at', { ascending: false })
-          .limit(200);
+          .limit(300);
 
         if (error) throw error;
         if (data) {
-          const junkKeys = [
-            "pc gaming", "cpu gaming", "komputer", "laptop", "notebook",
-            "pc rakitan", "rakitan pc", "fullset pc", "pc fullset", "full set pc",
-            "1 set pc", "satu set pc", "set pc", "rig gaming", "mining rig",
-            "gaming rig", "fullset ryzen", "fullset intel", "paket pc", "pc render",
-            "aisurix", "mllse", "peladn", "soyo", "rx 580", "rx 570"
-          ];
-          allDeals = data.filter(d => {
-            if (!d.title || !d.price || d.price < 800000) return false;
-            const tLow = d.title.toLowerCase();
-            return !junkKeys.some(k => tLow.includes(k));
-          });
+          // Data gold_deals sudah bersih dari refiner — tidak perlu filter JS manual
+          allDeals = data;
           updateStatsAndPillCounts();
           renderListings();
         }
@@ -499,8 +490,8 @@
         .subscribe();
 
       dbClient
-        .channel('public:vga_deals')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'vga_deals' }, () => {
+        .channel('public:gold_deals')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'gold_deals' }, () => {
           loadData();
         })
         .subscribe();
@@ -764,7 +755,7 @@
       if(!confirm("Yakin hapus sampah ini permanen dari radar?")) return;
       
       try {
-        const resp = await fetch(`${SUPABASE_URL}/rest/v1/vga_deals?id=eq.${id}`, {
+        const resp = await fetch(`${SUPABASE_URL}/rest/v1/gold_deals?id=eq.${id}`, {
           method: 'PATCH',
           headers: {
             'apikey': SUPABASE_ANON_KEY,
