@@ -85,6 +85,11 @@ def refine_listing(raw: dict) -> dict | None:
     if any(b in full_text for b in BANNED_JUNK_MODELS):
         return {"gold_status": "REJECTED_LOW_SPEC", "reject_reason": "Spesifikasi GPU di bawah threshold"}
 
+    # Reject toko suspend / tutup / toko libur / akun dibekukan (kasus Toco & Marketplace)
+    SHOP_INACTIVE_FLAGS = ["toko libur", "toko tutup", "toko ditutup", "toko disuspend", "akun ditangguhkan", "akun dibekukan", "seller suspended", "sedang libur", "tidak aktif"]
+    if any(flag in full_text for flag in SHOP_INACTIVE_FLAGS):
+        return {"gold_status": "REJECTED_JUNK", "reject_reason": "Toko/Seller sedang libur atau kena suspend"}
+
     # Reject GPU di bawah spec minimum
     chipset = match_gpu_model(title) or match_gpu_model(desc)
     if not chipset:
