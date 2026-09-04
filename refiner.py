@@ -63,7 +63,7 @@ def _find_keyword(text: str, keyword_map: dict) -> str:
     return "UNKNOWN"
 
 
-def refine_listing(raw: dict) -> dict | None:
+def refine_listing(raw: dict, custom_queries: list = None) -> dict | None:
     """
     Proses satu listing mentah jadi data gold.
     Return None jika listing harus di-reject.
@@ -79,7 +79,7 @@ def refine_listing(raw: dict) -> dict | None:
 
     # Reject non-GPU / barang sampah / brand rekondisi
     if any(b in full_text for b in BANNED_NON_GPU):
-        return {"gold_status": "REJECTED_JUNK", "reject_reason": "Non-GPU / PC rakitan / aksesori"}
+        return {"gold_status": "REJECTED_JUNK", "reject_reason": "Non-GPU / PC rakitan / aksesori / waterblock"}
     if any(b in full_text for b in BANNED_JUNK_BRANDS):
         return {"gold_status": "REJECTED_JUNK", "reject_reason": "Brand chip rekondisi Cina"}
     if any(b in full_text for b in BANNED_JUNK_MODELS):
@@ -94,6 +94,19 @@ def refine_listing(raw: dict) -> dict | None:
     chipset = match_gpu_model(title) or match_gpu_model(desc)
     if not chipset:
         return {"gold_status": "REJECTED_JUNK", "reject_reason": "Model GPU tidak dikenali"}
+
+    # STRICT TARGET FILTER: Jika user set target query khusus di web, wajib cocok kata kuncinya!
+    if custom_queries:
+        matched_any = False
+        for q in custom_queries:
+            q_clean = q.lower().strip()
+            terms = q_clean.split()
+            # Harus mengandung semua kata kunci target (misal: "rtx" DAN "2070" DAN "super")
+            if all(term in full_text or term in chipset.lower() for term in terms):
+                matched_any = True
+                break
+        if not matched_any:
+            return {"gold_status": "REJECTED_NOT_TARGET", "reject_reason": f"Bukan model target yang diminta user ({custom_queries})"}
 
     # =========================================================================
     # TAHAP 2 — EKSTRAKSI SPESIFIKASI
@@ -251,9 +264,9 @@ def _mark_refined(raw_ids: list[str]):
 # MAIN REFINER RUNNER
 # ==============================================================================
 
-def run_refiner(batch_size: int = 50):
+def run_refiner(batch_size: int = 50, custom_queries: list = None):
     """Ambil raw_scrapes yang belum diproses, refine, push ke gold_deals."""
-    print(f"\n[*] REFINER START — Mengambil raw batch (max {batch_size})...")
+    print(f"\n[*] REFINER START — Mengambil raw batch (max {batch_size}, target: {custom_queries})...")
 
     try:
         raw_batch = _supabase_get(
@@ -274,7 +287,7 @@ def run_refiner(batch_size: int = 50):
     approved_ids = []
 
     for raw in raw_batch:
-        result = refine_listing(raw)
+        result = refine_listing(raw, custom_queries=custom_queries)
         if result is None:
             rejected_ids.append(raw["id"])
             continue

@@ -151,6 +151,14 @@ BANNED_NON_GPU = [
     "gundam", "gunpla", "bandai", "mokit", "figure", "figurine", "model kit", "tamiya", "hotwheels", "lego",
     "kamar", "kost", "kontrakan", "sewa", "rumah", "apartemen", "tanah", "mobil", "motor", "helm",
     "baju", "sepatu", "celana", "jaket", "tas", "meja", "kursi", "lemari", "ps4", "ps5", "iphone",
+    # Waterblocks & custom liquid parts (bukan VGA utuh)
+    "water block", "waterblock", "watercooling", "water cooling", "water block only",
+    "barrow", "bykski", "ekwb", "ek-quantum", "alphacool", "heatsink water",
+    # Laptop & PC Build models yang sering salah lolos
+    "legion", "zephyrus", "thinkpad", "omen", "victus", "predator helios", "nitro 5",
+    "ideapad gaming", "rog strix g15", "rog strix g17", "rog zephyrus",
+    "core i3", "core i5", "core i7", "core i9", "ryzen 3", "ryzen 5", "ryzen 7", "ryzen 9",
+    "ram 8gb", "ram 16gb", "ram 32gb", "ssd 256", "ssd 512", "ssd 1tb",
     # PC rakitan / laptop (bukan VGA lepasan)
     "pc gaming", "cpu gaming", "komputer", "laptop", "notebook",
     "pc rakitan", "rakitan pc", "fullset pc", "pc fullset", "full set pc",

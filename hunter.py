@@ -354,8 +354,8 @@ async def run_sniper_round(custom_queries: list = None, target_platforms: list =
 
     # AUTO-CHAIN REFINER: Langsung murnikan data mentah jadi gold_deals
     try:
-        print("\n[*] MEMICU AUTO-REFINER (Bronze -> Gold)...")
-        run_refiner(batch_size=100)
+        print(f"\n[*] MEMICU AUTO-REFINER (Bronze -> Gold, Target: {active_queries})...")
+        run_refiner(batch_size=100, custom_queries=active_queries if custom_queries else None)
     except Exception as e:
         print(f"[-] Auto-refiner error: {e}")
 

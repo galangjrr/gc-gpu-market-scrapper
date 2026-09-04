@@ -776,16 +776,25 @@
     }
 
     function renderListings() {
-      const q = document.getElementById('searchInput').value.toLowerCase();
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
       const grid = document.getElementById('listingsGrid');
       grid.innerHTML = '';
+
+      const terms = q.split(/\s+/).filter(Boolean);
 
       const filtered = allDeals.filter(d => {
         if (d.action_decision === 'trashed') return false; // Sembunyikan item sampah
         if (onlyStealDeals && !d.is_steal_deal) return false;
-        const matchQ = (d.title && d.title.toLowerCase().includes(q)) || (d.location && d.location.toLowerCase().includes(q)) || (d.brand && d.brand.toLowerCase().includes(q));
+
+        // Pencarian multi-kata pintar (urutan bebas, cek chipset, judul, brand, varian, lokasi)
+        if (terms.length > 0) {
+          const haystack = `${d.title || ''} ${d.chipset || ''} ${d.brand || ''} ${d.variant || ''} ${d.location || ''} ${d.cooler_type || ''} ${d.fan_type || ''}`.toLowerCase();
+          const matchAll = terms.every(t => haystack.includes(t));
+          if (!matchAll) return false;
+        }
+
         const matchP = selectedPlatform === 'ALL' || d.platform === selectedPlatform;
-        return matchQ && matchP;
+        return matchP;
       });
 
       document.getElementById('resultCountBadge').innerText = `${filtered.length} Unit`;
@@ -877,9 +886,12 @@
               <div>
                 ${headerWithoutImg}
                 <h4 class="font-bold text-slate-800 text-xs line-clamp-2 leading-relaxed" title="${d.title}">${d.title}</h4>
-                <div class="flex items-center gap-2 mt-2 text-[10px] text-slate-500 font-medium">
+                <div class="flex flex-wrap items-center gap-1.5 mt-2 text-[10px] text-slate-500 font-medium">
+                  <span class="px-1.5 py-0.2 bg-purple-50 text-purple-700 border border-purple-200 rounded font-black text-[10px]">${d.chipset || 'GPU'}</span>
                   <span class="px-1.5 py-0.2 bg-slate-100 rounded font-semibold text-slate-600">${d.brand || 'OEM'}</span>
-                  <span class="truncate max-w-[130px]"><i class="fa-solid fa-location-dot text-slate-400"></i> ${d.location || 'Indonesia'}</span>
+                  ${d.box_status && d.box_status !== 'UNKNOWN' ? `<span class="px-1.5 py-0.2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded font-bold text-[9px]">${d.box_status}</span>` : ''}
+                  ${d.seal_status && d.seal_status !== 'UNKNOWN' ? `<span class="px-1.5 py-0.2 bg-amber-50 text-amber-700 border border-amber-200 rounded font-bold text-[9px]">${d.seal_status}</span>` : ''}
+                  <span class="truncate max-w-[110px]"><i class="fa-solid fa-location-dot text-slate-400"></i> ${d.location || 'Indonesia'}</span>
                 </div>
               </div>
               
