@@ -20,12 +20,16 @@ async def scrape_tokopedia_vga(
     print(f"[*] Scraping Tokopedia (Second & Terbaru): {url}")
     
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=45000)
-        await page.wait_for_timeout(3000)
+        await page.goto(url, wait_until="domcontentloaded", timeout=35000)
         
+        try:
+            await page.wait_for_selector('div[data-ssr="contentProductsSRPSSR"] a, a[data-testid="lnkProductItem"]', timeout=12000)
+        except Exception:
+            pass
+            
         for _ in range(3):
             await page.mouse.wheel(0, 1500)
-            await page.wait_for_timeout(1200)
+            await page.wait_for_timeout(1000)
             
         cards = await page.locator('div[data-ssr="contentProductsSRPSSR"] a, a[data-testid="lnkProductItem"]').all()
         print(f"[*] Menemukan {len(cards)} elemen produk Tokopedia")
@@ -72,7 +76,13 @@ async def scrape_tokopedia_vga(
             try:
                 img_el = card.locator("img").first
                 if await img_el.count() > 0:
-                    img_url = await img_el.get_attribute("src") or await img_el.get_attribute("data-src") or ""
+                    src = await img_el.get_attribute("src") or ""
+                    data_src = await img_el.get_attribute("data-src") or ""
+                    # Jangan pakai placeholder SVG bawaan Tokped
+                    if "svg" in src and data_src:
+                        img_url = data_src
+                    else:
+                        img_url = data_src or src
             except Exception:
                 pass
                 
