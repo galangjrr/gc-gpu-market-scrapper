@@ -22,6 +22,7 @@ from scrapers.tokped import scrape_tokopedia_vga
 from scrapers.toco import scrape_toco_vga
 from sync_supabase import sync_deals_to_supabase
 from dump_raw import dump_raw_to_supabase
+from refiner import run_refiner
 from smart_learner import learner
 
 
@@ -350,6 +351,13 @@ async def run_sniper_round(custom_queries: list = None, target_platforms: list =
             dump_raw_to_supabase(new_raw)
     except Exception as e:
         print(f"[-] Raw dump error: {e}")
+
+    # AUTO-CHAIN REFINER: Langsung murnikan data mentah jadi gold_deals
+    try:
+        print("\n[*] MEMICU AUTO-REFINER (Bronze -> Gold)...")
+        run_refiner(batch_size=100)
+    except Exception as e:
+        print(f"[-] Auto-refiner error: {e}")
 
     # Auto-Prune Discord alert lama (>7 hari)
     try:
