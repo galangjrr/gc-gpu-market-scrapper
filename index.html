@@ -138,10 +138,10 @@
       </summary>
       
       <div class="mt-4 pt-3 border-t border-slate-100 space-y-3">
-        <p class="text-[11px] text-slate-500">Ubah platform dan keyword target. Config langsung aktif di iterasi berikutnya tanpa restart PC.</p>
+        <p class="text-[11px] text-slate-500">Ubah platform, kata kunci, dan batas budget belanja. Bot otomatis reject barang yang melebihi harga max.</p>
         
         <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
-          <div class="sm:col-span-5">
+          <div class="sm:col-span-4">
             <label class="block text-[11px] font-bold text-slate-600 mb-2">Target Platform</label>
             <div class="flex gap-3" id="configPlatforms">
                <label class="flex items-center gap-1.5 text-xs text-slate-700 font-semibold cursor-pointer">
@@ -154,13 +154,24 @@
                  <input type="checkbox" id="chkToco" value="toco" class="w-4 h-4 text-purple-600 bg-slate-100 border-slate-300 rounded focus:ring-purple-500"> Toco.id
                </label>
             </div>
+            
+            <div class="grid grid-cols-2 gap-2 mt-3">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 mb-1">Harga Min (Rp)</label>
+                <input type="number" id="configMinPrice" placeholder="Cth: 1000000" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-purple-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 mb-1">Harga Max / Budget (Rp)</label>
+                <input type="number" id="configMaxPrice" placeholder="Cth: 3500000" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-purple-500 focus:outline-none">
+              </div>
+            </div>
           </div>
-          <div class="sm:col-span-5">
+          <div class="sm:col-span-6">
             <label class="block text-[11px] font-bold text-slate-600 mb-1">Target Queries (Pisahkan dengan koma)</label>
-            <textarea id="configQueries" rows="2" placeholder="Kosong = pakai default (vga rtx 3060, dll)&#10;Atau isi manual: AMD sapphire nitro+ rx 6600 xt, rtx 3060" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-[11px] font-semibold text-slate-800 focus:ring-2 focus:ring-purple-500 focus:outline-none"></textarea>
+            <textarea id="configQueries" rows="3" placeholder="Kosong = pakai default&#10;Atau isi target spesifik: RTX 2070 Super, RX 6600 XT Sapphire Nitro" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-2 text-[11px] font-semibold text-slate-800 focus:ring-2 focus:ring-purple-500 focus:outline-none"></textarea>
           </div>
           <div class="sm:col-span-2 flex items-end h-full pt-4">
-            <button onclick="saveBotConfig()" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs sm:text-sm rounded-lg transition shadow-sm flex justify-center items-center gap-2">
+            <button onclick="saveBotConfig()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs sm:text-sm rounded-lg transition shadow-sm flex justify-center items-center gap-2">
               <i class="fa-solid fa-cloud-arrow-up"></i> Save
             </button>
           </div>
@@ -459,7 +470,7 @@
     }
 
     if (dbClient) {
-      dbClient.from('bot_commands').select('state, last_ping, custom_queries, target_platforms').eq('id', 'main').single().then(({ data }) => {
+      dbClient.from('bot_commands').select('state, last_ping, custom_queries, target_platforms, spotter_config').eq('id', 'main').single().then(({ data }) => {
         if (data && data.state) updateBadgeState(data.state, data.last_ping);
         if (data) {
           const plats = data.target_platforms || ['tokopedia', 'facebook', 'toco'];
@@ -467,6 +478,10 @@
           document.getElementById('chkFacebook').checked = plats.includes('facebook');
           document.getElementById('chkToco').checked = plats.includes('toco');
           document.getElementById('configQueries').value = data.custom_queries ? data.custom_queries.join(', ') : '';
+          if (data.spotter_config) {
+            if (data.spotter_config.min_price) document.getElementById('configMinPrice').value = data.spotter_config.min_price;
+            if (data.spotter_config.max_price) document.getElementById('configMaxPrice').value = data.spotter_config.max_price;
+          }
         }
       });
 
@@ -484,6 +499,10 @@
             }
             if (payload.new.custom_queries !== undefined) {
                document.getElementById('configQueries').value = payload.new.custom_queries ? payload.new.custom_queries.join(', ') : '';
+            }
+            if (payload.new.spotter_config) {
+               if (payload.new.spotter_config.min_price) document.getElementById('configMinPrice').value = payload.new.spotter_config.min_price;
+               if (payload.new.spotter_config.max_price) document.getElementById('configMaxPrice').value = payload.new.spotter_config.max_price;
             }
           }
         })
@@ -515,6 +534,15 @@
        if (queryText) {
           queries = queryText.split(',').map(q => q.trim()).filter(q => q.length > 0);
        }
+
+       const minPrice = parseInt(document.getElementById('configMinPrice').value) || null;
+       const maxPrice = parseInt(document.getElementById('configMaxPrice').value) || null;
+       let spotterConfig = null;
+       if (minPrice || maxPrice) {
+          spotterConfig = {};
+          if (minPrice) spotterConfig.min_price = minPrice;
+          if (maxPrice) spotterConfig.max_price = maxPrice;
+       }
        
        try {
           const btn = document.querySelector('button[onclick="saveBotConfig()"]');
@@ -525,12 +553,14 @@
              id: 'main', 
              target_platforms: plats.length > 0 ? plats : null,
              custom_queries: queries,
+             spotter_config: spotterConfig,
              updated_at: new Date().toISOString()
           });
           
           btn.innerHTML = oldHtml;
           if (error) throw error;
-          alert("Config tersimpan! Akan aktif di iterasi scan bot berikutnya.");
+          alert("Config tersimpan! Target platform, keyword, dan budget max/min berhasil diaktifkan.");
+          renderListings();
        } catch(e) {
           alert("Gagal simpan config: " + e.message);
        }
@@ -786,6 +816,12 @@
         if (d.action_decision === 'trashed') return false; // Sembunyikan item sampah
         if (onlyStealDeals && !d.is_steal_deal) return false;
 
+        // Filter budget harga min & max jika diisi di panel config
+        const maxBudget = parseInt(document.getElementById('configMaxPrice')?.value) || null;
+        const minBudget = parseInt(document.getElementById('configMinPrice')?.value) || null;
+        if (maxBudget && d.price > maxBudget) return false;
+        if (minBudget && d.price < minBudget) return false;
+
         // Pencarian multi-kata pintar (urutan bebas, cek chipset, judul, brand, varian, lokasi)
         if (terms.length > 0) {
           const haystack = `${d.title || ''} ${d.chipset || ''} ${d.brand || ''} ${d.variant || ''} ${d.location || ''} ${d.cooler_type || ''} ${d.fan_type || ''}`.toLowerCase();
@@ -917,6 +953,8 @@
     }
 
     document.getElementById('searchInput').addEventListener('input', renderListings);
+    document.getElementById('configMaxPrice').addEventListener('input', renderListings);
+    document.getElementById('configMinPrice').addEventListener('input', renderListings);
     loadData();
   </script>
 </body>

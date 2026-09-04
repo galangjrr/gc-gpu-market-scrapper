@@ -355,7 +355,7 @@ async def run_sniper_round(custom_queries: list = None, target_platforms: list =
     # AUTO-CHAIN REFINER: Langsung murnikan data mentah jadi gold_deals
     try:
         print(f"\n[*] MEMICU AUTO-REFINER (Bronze -> Gold, Target: {active_queries})...")
-        run_refiner(batch_size=100, custom_queries=active_queries if custom_queries else None)
+        run_refiner(batch_size=100, custom_queries=active_queries if custom_queries else None, spotter_config=spotter_config)
     except Exception as e:
         print(f"[-] Auto-refiner error: {e}")
 
@@ -377,7 +377,7 @@ async def run_sniper_round(custom_queries: list = None, target_platforms: list =
 def get_remote_command() -> dict:
     try:
         req = urllib.request.Request(
-            f"{SUPABASE_URL}/rest/v1/bot_commands?id=eq.main&select=command,state,custom_queries,target_platforms",
+            f"{SUPABASE_URL}/rest/v1/bot_commands?id=eq.main&select=command,state,custom_queries,target_platforms,spotter_config",
             headers={
                 "apikey": SUPABASE_SERVICE_KEY,
                 "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}"

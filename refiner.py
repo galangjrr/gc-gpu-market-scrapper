@@ -63,7 +63,7 @@ def _find_keyword(text: str, keyword_map: dict) -> str:
     return "UNKNOWN"
 
 
-def refine_listing(raw: dict, custom_queries: list = None) -> dict | None:
+def refine_listing(raw: dict, custom_queries: list = None, spotter_config: dict = None) -> dict | None:
     """
     Proses satu listing mentah jadi data gold.
     Return None jika listing harus di-reject.
@@ -107,6 +107,15 @@ def refine_listing(raw: dict, custom_queries: list = None) -> dict | None:
                 break
         if not matched_any:
             return {"gold_status": "REJECTED_NOT_TARGET", "reject_reason": f"Bukan model target yang diminta user ({custom_queries})"}
+
+    # STRICT BUDGET FILTER: Tolak barang di luar budget user (harga max / harga min)
+    if spotter_config:
+        max_budget = spotter_config.get("max_price")
+        min_budget = spotter_config.get("min_price")
+        if max_budget and price > max_budget:
+            return {"gold_status": "REJECTED_OVERBUDGET", "reject_reason": f"Harga Rp {price:,} melebihi budget max Rp {max_budget:,}"}
+        if min_budget and price < min_budget:
+            return {"gold_status": "REJECTED_UNDERBUDGET", "reject_reason": f"Harga Rp {price:,} di bawah harga wajar Rp {min_budget:,}"}
 
     # =========================================================================
     # TAHAP 2 — EKSTRAKSI SPESIFIKASI
@@ -264,9 +273,9 @@ def _mark_refined(raw_ids: list[str]):
 # MAIN REFINER RUNNER
 # ==============================================================================
 
-def run_refiner(batch_size: int = 50, custom_queries: list = None):
+def run_refiner(batch_size: int = 50, custom_queries: list = None, spotter_config: dict = None):
     """Ambil raw_scrapes yang belum diproses, refine, push ke gold_deals."""
-    print(f"\n[*] REFINER START — Mengambil raw batch (max {batch_size}, target: {custom_queries})...")
+    print(f"\n[*] REFINER START — Mengambil raw batch (max {batch_size}, target: {custom_queries}, budget: {spotter_config})...")
 
     try:
         raw_batch = _supabase_get(
@@ -287,7 +296,7 @@ def run_refiner(batch_size: int = 50, custom_queries: list = None):
     approved_ids = []
 
     for raw in raw_batch:
-        result = refine_listing(raw, custom_queries=custom_queries)
+        result = refine_listing(raw, custom_queries=custom_queries, spotter_config=spotter_config)
         if result is None:
             rejected_ids.append(raw["id"])
             continue
