@@ -21,6 +21,7 @@ from scrapers.facebook import scrape_fb_marketplace
 from scrapers.tokped import scrape_tokopedia_vga
 from scrapers.toco import scrape_toco_vga
 from sync_supabase import sync_deals_to_supabase
+from dump_raw import dump_raw_to_supabase
 from smart_learner import learner
 
 
@@ -266,15 +267,20 @@ def send_discord_alert(deal: dict, deal_type: str = "STEAL_DEAL", smart_score: i
 # SNIPER ROUND — Core scan loop
 # ==============================================================================
 
-async def run_sniper_round(custom_queries: list = None, target_platforms: list = None):
+async def run_sniper_round(custom_queries: list = None, target_platforms: list = None, spotter_config: dict = None):
     init_db()
     all_deals = []
-    
+
     active_queries = custom_queries if custom_queries else SEARCH_QUERIES
     active_plats = [p.lower() for p in target_platforms] if target_platforms else ["tokopedia", "facebook", "toco"]
 
+    # Batas harga dari spotter_config (default sangat lebar, gak reject data)
+    cfg_min = spotter_config.get("min_price", 500000) if spotter_config else 500000
+    cfg_max = spotter_config.get("max_price", 30000000) if spotter_config else 30000000
+
     print("\n" + "=" * 50)
-    print(f"[*] MEMULAI SNIPER VGA CUAN (Spec: RTX 2060+ / RX 6600 XT+)")
+    print(f"[*] MEMULAI RAW INGEST (Platform: {active_plats})")
+    print(f"[*] Filter harga: Rp {cfg_min:,} - Rp {cfg_max:,}")
     print("=" * 50)
 
     manager = BrowserManager()
@@ -282,8 +288,8 @@ async def run_sniper_round(custom_queries: list = None, target_platforms: list =
 
     try:
         for q in active_queries:
-            print(f"\n[*] Scan Query: '{q}' (Concurrent Run)")
-            
+            print(f"\n[*] Scan Query: '{q}'")
+
             tasks = []
             contexts = []
             platform_names = []
@@ -291,19 +297,19 @@ async def run_sniper_round(custom_queries: list = None, target_platforms: list =
             if "tokopedia" in active_plats:
                 ctx, page = await manager.new_context()
                 contexts.append(ctx)
-                tasks.append(scrape_tokopedia_vga(page, query=q, min_price=1000000, max_price=6000000, max_items=15))
+                tasks.append(scrape_tokopedia_vga(page, query=q, min_price=cfg_min, max_price=cfg_max, max_items=15))
                 platform_names.append("Tokopedia")
 
             if "facebook" in active_plats:
                 ctx, page = await manager.new_context(extra_http_headers={"Accept-Language": "id-ID"})
                 contexts.append(ctx)
-                tasks.append(scrape_fb_marketplace(page, query=q, city="jakarta", min_price=0, max_price=6000000, days_since_listed=7, max_items=15))
+                tasks.append(scrape_fb_marketplace(page, query=q, city="jakarta", min_price=0, max_price=cfg_max, days_since_listed=7, max_items=15))
                 platform_names.append("FB")
 
             if "toco" in active_plats:
                 ctx, page = await manager.new_context()
                 contexts.append(ctx)
-                tasks.append(scrape_toco_vga(page, query=q, min_price=1000000, max_price=6000000, max_items=15))
+                tasks.append(scrape_toco_vga(page, query=q, min_price=cfg_min, max_price=cfg_max, max_items=15))
                 platform_names.append("Toco")
 
             results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -314,91 +320,46 @@ async def run_sniper_round(custom_queries: list = None, target_platforms: list =
             for i, (name, res) in enumerate(zip(platform_names, results)):
                 if isinstance(res, list):
                     all_deals.extend(res)
+                    print(f"[+] {name}: {len(res)} listing mentah ditangkap")
                 else:
                     print(f"[-] {name} error: {res}")
 
+        # Ambil deskripsi untuk listing yang butuh deep scan
         from scrapers import fetch_item_description
-
-        # Evaluasi & Alert
-        new_alerts = 0
-        already_seen_count = 0
-        junk_blocked_count = 0
-        overprice_count = 0
-
         ctx_s2, page_s2 = await manager.new_context()
-
         for deal in all_deals:
-            url = deal["url"]
-            if is_deal_seen(url):
-                already_seen_count += 1
+            if is_deal_seen(deal["url"]):
                 continue
-
-            save_deal(url, deal["title"], deal["price"], deal["source"])
-
-            should_alert, deal_type, reason, smart_score, needs_stage2 = evaluate_deal_stage1(
-                deal["title"], deal["price"], deal.get("source", "")
-            )
-
-            if needs_stage2:
-                print(f"[*] [Stage 2 Trigger] Fetch deskripsi: {deal['title']} ...")
+            save_deal(deal["url"], deal["title"], deal["price"], deal["source"])
+            # Fetch deskripsi langsung saat scraping, simpan ke field desc
+            try:
                 desc = await fetch_item_description(page_s2, deal["url"])
-                should_alert, deal_type, reason, smart_score = evaluate_deal_stage2(deal, desc, smart_score)
-
-            # Rekam sampel ke self-learning memory
-            model = match_gpu_model(deal["title"])
-            if model:
-                learner.record_deal_sample(model, deal["price"], deal["source"], deal["title"], should_alert)
-            
-            # Suntik ke dictionary untuk dibawa ke Supabase
-            deal["deal_type"] = deal_type
-            deal["smart_score"] = smart_score
-
-            if should_alert:
-                send_discord_alert(deal, deal_type=deal_type, smart_score=smart_score)
-                new_alerts += 1
-                await asyncio.sleep(0.4)
-            else:
-                if "AMPAS" in deal_type or "DIBLOKIR" in deal_type or "MATOT" in deal_type:
-                    junk_blocked_count += 1
-                elif "KEMAHALAN" in deal_type:
-                    overprice_count += 1
-
+                deal["description"] = desc
+            except Exception:
+                deal["description"] = ""
         await ctx_s2.close()
 
     finally:
         await manager.close()
 
-    print("\n" + "=" * 50)
-    print(f"[*] RINGKASAN PEMINDAIAN SNIPER:")
-    print(f"[*] Total valid deals ditemukan: {len(all_deals)}")
-    
-    # Hanya push deal yang lolos filter ampas
-    valid_deals_for_sync = [
-        d for d in all_deals 
-        if "AMPAS" not in d.get("deal_type", "") 
-        and "DIBLOKIR" not in d.get("deal_type", "") 
-        and "MATOT" not in d.get("deal_type", "")
-        and "PANCINGAN" not in d.get("deal_type", "")
-    ]
-
-    # Sinkronisasi ke Supabase Cloud
+    # Dump semua ke raw_scrapes Supabase (Bronze Layer)
+    new_raw = [d for d in all_deals if d.get("url")]
+    print(f"\n[*] TOTAL LISTING MENTAH DITANGKAP: {len(new_raw)}")
     try:
-        if valid_deals_for_sync:
-            sync_deals_to_supabase(valid_deals_for_sync)
+        if new_raw:
+            dump_raw_to_supabase(new_raw)
     except Exception as e:
-        print(f"[-] Supabase sync error: {e}")
+        print(f"[-] Raw dump error: {e}")
 
-    # Auto-Prune alert Discord lama (> 7 hari)
+    # Auto-Prune Discord alert lama (>7 hari)
     try:
         prune_old_discord_alerts(days=7)
-    except Exception as e:
-        print(f"[-] Discord prune error: {e}")
+    except Exception:
+        pass
 
-    print(f"    - Listing lama dilewati: {already_seen_count}")
-    print(f"    - Diblokir (VGA ampas/matot/dus): {junk_blocked_count}")
-    print(f"    - Dilewati (Harga kemahalan): {overprice_count}")
-    print(f"    - ALERT CUAN TERKIRIM KE DISCORD: {new_alerts}")
     print("=" * 50)
+
+
 
 
 # ==============================================================================
@@ -455,14 +416,18 @@ async def heartbeat_worker():
 
 async def main_loop(interval_minutes: int = 10):
     global _current_bot_state
-    print(f"[*] VGA Hunter cloud-controlled loop aktif (Cek tiap {interval_minutes} menit / kendali web)")
+    print(f"[*] VGA Hunter aktif — Mode: STANDBY. Menunggu perintah SCAN_NOW dari web...")
 
     asyncio.create_task(heartbeat_worker())
+
+    # Boot dalam STANDBY, bukan langsung scan
+    _current_bot_state = "STANDBY"
+    update_bot_state("STANDBY")
 
     while True:
         try:
             remote = get_remote_command()
-            cmd = remote.get("command", "RESUME")
+            cmd = remote.get("command", "STANDBY")
 
             if cmd == "STOP":
                 print("[!] Menerima perintah STOP dari Web. Mematikan bot...")
@@ -476,27 +441,29 @@ async def main_loop(interval_minutes: int = 10):
                 await asyncio.sleep(5)
                 continue
 
-            _current_bot_state = "SCANNING"
-            update_bot_state("SCANNING", reset_command=(cmd == "SCAN_NOW"))
-            try:
-                c_queries = remote.get("custom_queries")
-                c_plats = remote.get("target_platforms")
-                await run_sniper_round(custom_queries=c_queries, target_platforms=c_plats)
-            except Exception as e:
-                print(f"[-] Round error: {e}")
+            # Hanya jalankan scan jika ada perintah eksplisit SCAN_NOW
+            if cmd == "SCAN_NOW":
+                _current_bot_state = "SCANNING"
+                update_bot_state("SCANNING", reset_command=True)
+                try:
+                    c_queries = remote.get("custom_queries")
+                    c_plats = remote.get("target_platforms")
+                    c_spotter = remote.get("spotter_config")
+                    await run_sniper_round(
+                        custom_queries=c_queries,
+                        target_platforms=c_plats,
+                        spotter_config=c_spotter
+                    )
+                except Exception as e:
+                    print(f"[-] Round error: {e}")
 
-            _current_bot_state = "IDLE"
-            update_bot_state("IDLE")
-
-            # Sleep dengan respon instan jika ada perintah dari Web
-            total_seconds = interval_minutes * 60
-            elapsed = 0
-            while elapsed < total_seconds:
+                _current_bot_state = "STANDBY"
+                update_bot_state("STANDBY")
+            else:
+                # STANDBY / RESUME / IDLE: diam, polling setiap 5 detik
+                _current_bot_state = "STANDBY"
                 await asyncio.sleep(5)
-                elapsed += 5
-                check = get_remote_command()
-                if check.get("command") in ["SCAN_NOW", "PAUSE", "STOP"]:
-                    break
+
         except Exception as err:
             print(f"[!] Loop exception: {err}. Melanjutkan dalam 10 detik...")
             await asyncio.sleep(10)
